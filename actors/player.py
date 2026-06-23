@@ -52,19 +52,19 @@ class Player(ActorBase):
         self.is_moving = False
         dx, dy = 0, 0
 
-        if keys[pygame.K_DOWN]:
+        if keys[pygame.K_s]:
             self.direction = self.DOWN
             dy = self.speed
             self.is_moving = True
-        elif keys[pygame.K_UP]:
+        elif keys[pygame.K_w]:
             self.direction = self.UP
             dy = -self.speed
             self.is_moving = True
-        elif keys[pygame.K_LEFT]:
+        elif keys[pygame.K_a]:
             self.direction = self.LEFT
             dx = -self.speed
             self.is_moving = True
-        elif keys[pygame.K_RIGHT]:
+        elif keys[pygame.K_d]:
             self.direction = self.RIGHT
             dx = self.speed
             self.is_moving = True

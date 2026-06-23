@@ -15,6 +15,7 @@ from systems.sound import SoundSystem
 
 def main():
     pygame.init()
+    pygame.key.stop_text_input()
 
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption(GAME_TITLE)
