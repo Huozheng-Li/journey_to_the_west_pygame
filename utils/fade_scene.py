@@ -45,10 +45,10 @@ class FadeScene:
 
     def get_out(self):
         """
-        检查渐变是否结束
+        检查渐出是否完成
         :return: 是否完成渐出
         """
-        return self.status == SceneStatus.Out and self.alpha == 0
+        return self.status == SceneStatus.Over
 
     def update(self):
         """更新渐变状态"""
