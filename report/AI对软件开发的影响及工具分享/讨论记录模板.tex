@@ -1,0 +1,169 @@
+\documentclass[12pt,a4paper]{article}
+
+% ===== 宏包 =====
+\usepackage[UTF8]{ctex}                  % 中文支持
+\usepackage{fontspec}                     % 字体设置
+\setmainfont{Times New Roman}             % 西文主字体
+\usepackage{geometry}                     % 页面边距
+\usepackage{booktabs}                     % 三线表
+\usepackage{tabularx}                     % 自适应表格
+\usepackage{enumitem}                     % 列表自定义
+\usepackage{hyperref}                     % 超链接
+\usepackage{xcolor}                       % 颜色
+\usepackage{fancyhdr}                     % 页眉页脚
+\usepackage{titlesec}                     % 标题格式
+\usepackage{graphicx}                     % 图片
+\usepackage{multirow}                     % 合并行
+\usepackage{array}                        % 表格增强
+
+% ===== 页面设置 =====
+\geometry{left=2.5cm, right=2.5cm, top=2.8cm, bottom=2.5cm}
+
+% ===== 页眉页脚 =====
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\small 第 \thepage\ 页}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% ===== 标题格式 =====
+\titleformat{\section}{\Large\bfseries}{第\,\thesection\,节：}{0pt}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection\quad}{0pt}{}
+
+% ===== 自定义命令 =====
+\newcommand{\field}[2]{\textbf{【#1】}：\makebox[180pt]{#2}}
+\newcommand{\fieldlong}[2]{\textbf{【#1】}：\makebox[380pt]{#2}}
+\newcommand{\blankitem}{\item[\textbullet]\makebox[400pt]{}}
+
+% ===== 文档开始 =====
+\begin{document}
+
+% ===== 标题 =====
+\begin{center}
+    {\LARGE\bfseries 课程学习小组讨论记录}\\[1cm]
+\end{center}
+
+% ===== 基本信息 =====
+\noindent
+\field{讨论主题}{AI 对软件开发的影响及工具分享}\\[6pt]
+\field{课程名称}{软件项目开发与实践}\\[6pt]
+\field{讨论日期}{\today}\\[6pt]
+\field{讨论时长}{}\\[6pt]
+\field{主持人}{}\\[6pt]
+\fieldlong{参与人员}{}\\[12pt]
+
+\rule{\textwidth}{0.8pt}
+
+% ================================================================
+% 第一节：讨论背景与目标
+% ================================================================
+\section{讨论背景与目标}
+
+\subsection{讨论背景}
+近年来，AI Coding工具（如 Cursor、CodeBuddy、Trae 等）快速发展。课程中需结合实践，思考 AI 在真实开发中的价值与风险。
+
+% 在下方填写本次讨论的具体背景
+\vspace{0.5cm}
+\noindent\makebox[\textwidth]{}\\
+\noindent\makebox[\textwidth]{}\\
+\noindent\makebox[\textwidth]{}
+
+\subsection{讨论目标}
+\begin{enumerate}[label=\arabic*.]
+    \item 分析 AI 对软件开发各环节的影响
+    \item 分享常用 AI 开发工具与使用经验
+    \item 总结对程序员职业发展的启示
+    % 根据实际讨论需求，可增加目标条目
+\end{enumerate}
+
+% ================================================================
+% 第二节：主要讨论内容
+% ================================================================
+\section{主要讨论内容}
+
+\subsection{AI 对软件开发的影响}
+
+\subsubsection{积极影响}
+\begin{itemize}[leftmargin=2em]
+    \item 提高编码效率（代码补全、生成、重构）
+    \item 降低入门门槛（新手更容易上手）
+    \item 辅助文档编写、测试用例生成
+    \item 减少重复性劳动（样板代码、SQL、正则等）
+    % 根据实际讨论补充
+\end{itemize}
+
+\subsubsection{潜在问题与风险}
+\begin{itemize}[leftmargin=2em]
+    \item 生成代码质量不稳定（Bug、逻辑错误）
+    \item 安全隐患（敏感信息泄露、不安全代码）
+    \item 过度依赖导致基础能力下降
+    \item 版权与许可证不明确
+    % 根据实际讨论补充
+\end{itemize}
+
+\subsubsection{对开发者角色的影响}
+\begin{itemize}[leftmargin=2em]
+    \item 从“写代码” $\rightarrow$ “审查与组合代码”
+    \item 更注重系统设计、架构与业务理解
+    \item 提示词工程（Prompt Engineering）成为新技能
+    % 根据实际讨论补充
+\end{itemize}
+
+% 在下方补充其他讨论内容
+\vspace{0.5cm}
+\noindent\textbf{补充讨论内容：}\\[6pt]
+\noindent\makebox[\textwidth]{}\\
+\noindent\makebox[\textwidth]{}\\
+\noindent\makebox[\textwidth]{}
+
+\subsection{AI 开发工具分享}
+
+\begin{table}[htbp]
+\centering
+\caption{AI 开发工具对比}
+\label{tab:tools}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}m{2.2cm}|>{\centering\arraybackslash}m{1.8cm}|>{\centering\arraybackslash}m{2.8cm}|>{\centering\arraybackslash}m{3cm}|>{\centering\arraybackslash}m{3cm}|}
+\hline
+\textbf{工具名称} & \textbf{类型} & \textbf{适用场景} & \textbf{优点} & \textbf{缺点} \\
+\hline
+GitHub Copilot & 代码补全 & 日常编码 & 智能、流畅 & 付费、隐私 \\
+\hline
+ChatGPT & 通用 AI & 设计、调试、解释代码 & 灵活 & 可能产生幻觉 \\
+\hline
+Claude & 长文本分析 & 读源码、文档 & 上下文窗口长 & 速度一般 \\
+\hline
+Cursor & AI IDE & 全流程开发 & 体验好 & 学习成本 \\
+\hline
+% 根据实际分享补充更多工具
+% 工具名 & 类型 & 场景 & 优点 & 缺点 \\
+\hline
+\end{tabularx}
+\end{table}
+
+% ================================================================
+% 第三节：讨论总结与反思（可选）
+% ================================================================
+\section{讨论总结与反思}
+
+\subsection{关键收获}
+% 填写本次讨论的关键收获
+\vspace{0.5cm}
+\noindent\makebox[\textwidth]{}\\
+\noindent\makebox[\textwidth]{}\\
+\noindent\makebox[\textwidth]{}
+
+\subsection{个人感悟}
+% 填写个人感悟
+\vspace{0.5cm}
+\noindent\makebox[\textwidth]{}\\
+\noindent\makebox[\textwidth]{}\\
+\noindent\makebox[\textwidth]{}
+
+\subsection{后续行动计划}
+% 填写后续计划
+\vspace{0.5cm}
+\noindent\makebox[\textwidth]{}\\
+\noindent\makebox[\textwidth]{}\\
+\noindent\makebox[\textwidth]{}
+
+\end{document}

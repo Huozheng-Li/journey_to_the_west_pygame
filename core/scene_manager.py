@@ -93,10 +93,14 @@ class SceneManager:
             if self.fade_scene.get_out():
                 self.current_scene.on_exit()
                 self.current_scene = self.scenes[self.next_scene_name]
+                if self.sound_system:
+                    self.current_scene.sound_system = self.sound_system
                 self.current_scene.on_enter()
                 self.fade_scene.set_status(SceneStatus.In)
-                self.is_transitioning = False
                 self.next_scene_name = None
+            elif self.fade_scene.status == SceneStatus.Normal:
+                self.is_transitioning = False
+                self.fade_scene = None
         elif self.current_scene:
             self.current_scene.update()
 
