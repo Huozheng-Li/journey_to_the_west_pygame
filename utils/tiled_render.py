@@ -32,6 +32,9 @@ class TiledRenderer:
         self.tile_width = self.tmx_data.tilewidth
         self.tile_height = self.tmx_data.tileheight
 
+        # 缓存障碍物对象层（图层名为 obstacle）
+        self.obstacles_layer = self.get_object_layer('obstacle')
+
     def render_map(self, surface):
         """
         渲染整个地图到指定的surface
@@ -101,24 +104,41 @@ class TiledRenderer:
             return self.tmx_data.get_gid(x, y)
         return None
 
+    def _points_collide(self, points):
+        """
+        检查一组点是否与障碍物碰撞
+        :param points: 点列表 [(x, y), ...]
+        :return: 是否有碰撞
+        """
+        if not self.obstacles_layer:
+            return False
+        for obj in self.obstacles_layer:
+            if hasattr(obj, 'width') and hasattr(obj, 'height'):
+                for px, py in points:
+                    if obj.x <= px <= obj.x + obj.width and obj.y <= py <= obj.y + obj.height:
+                        return True
+        return False
+
     def is_blocked(self, x, y):
         """
-        检查指定位置是否被阻挡
+        检查指定像素位置是否被阻挡
         :param x: 像素x坐标
         :param y: 像素y坐标
         :return: 是否被阻挡
         """
-        # 转换为瓦格坐标
-        tile_x = int(x // self.tile_width)
-        tile_y = int(y // self.tile_height)
+        return self._points_collide([(x, y)])
 
-        # 检查障碍物对象层
-        obstacles = self.get_object_layer('障碍物')
-        if obstacles:
-            for obj in obstacles:
-                if hasattr(obj, 'width') and hasattr(obj, 'height'):
-                    if (obj.x <= x <= obj.x + obj.width and
-                        obj.y <= y <= obj.y + obj.height):
-                        return True
-
-        return False
+    def can_move_to(self, rect):
+        """
+        检查矩形是否可以移动到指定位置（不与障碍物碰撞）
+        :param rect: pygame.Rect 目标位置的碰撞矩形
+        :return: 是否可以移动
+        """
+        # 检查矩形四个角
+        corners = [
+            (rect.left, rect.top),
+            (rect.right - 1, rect.top),
+            (rect.left, rect.bottom - 1),
+            (rect.right - 1, rect.bottom - 1)
+        ]
+        return not self._points_collide(corners)
