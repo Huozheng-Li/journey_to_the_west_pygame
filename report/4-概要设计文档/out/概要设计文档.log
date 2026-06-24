@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.5.17)  24 JUN 2026 17:21
+This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.5.17)  24 JUN 2026 17:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1123,12 +1123,12 @@ Package hyperref Info: Link coloring OFF on input line 68.
 
 \c@lstlisting=\count372
 
-Underfull \hbox (badness 10000) in paragraph at lines 76--82
+Underfull \hbox (badness 10000) in paragraph at lines 76--81
 
  []
 
 
-Overfull \hbox (24.0pt too wide) in paragraph at lines 83--84
+Overfull \hbox (24.0pt too wide) in paragraph at lines 82--83
 [][] 
  []
 
@@ -1144,32 +1144,32 @@ File: figures/use_case.png Graphic file (type bmp)
 File: figures/class_diagram.png Graphic file (type bmp)
 <figures/class_diagram.png>
  [5]
-Overfull \hbox (22.81734pt too wide) in paragraph at lines 310--310
+Overfull \hbox (22.81734pt too wide) in paragraph at lines 309--309
  []|\TU/TimesNewRoman(0)/m/n/12 set_current_scene()| 
  []
 
 
-Overfull \hbox (5.50288pt too wide) in paragraph at lines 311--311
+Overfull \hbox (5.50288pt too wide) in paragraph at lines 310--310
  []|\TU/TimesNewRoman(0)/m/n/12 handle_events()| 
  []
 
 
-Overfull \hbox (10.14937pt too wide) in paragraph at lines 317--317
+Overfull \hbox (10.14937pt too wide) in paragraph at lines 316--316
  []|\TU/TimesNewRoman(0)/m/n/12 get_attack_rect()| 
  []
 
 
-Overfull \hbox (21.4814pt too wide) in paragraph at lines 319--319
+Overfull \hbox (21.4814pt too wide) in paragraph at lines 318--318
  []|\TU/TimesNewRoman(0)/m/n/12 chase_and_attack()| 
  []
 
 
-Overfull \hbox (2.1689pt too wide) in paragraph at lines 321--321
+Overfull \hbox (2.1689pt too wide) in paragraph at lines 320--320
  []|\TU/TimesNewRoman(0)/m/n/12 add_elder_hp()| 
  []
 
 
-Overfull \hbox (15.49312pt too wide) in paragraph at lines 322--322
+Overfull \hbox (15.49312pt too wide) in paragraph at lines 321--321
  []|\TU/TimesNewRoman(0)/m/n/12 add_tang_attack()| 
  []
 
@@ -1179,7 +1179,7 @@ t/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
 )
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 336.
+nput line 335.
 
 Package fontspec Info: 
 (fontspec)             Could not resolve font "FangSong/BI" (it probably
@@ -1211,32 +1211,32 @@ File: figures/sequence_attribute.png Graphic file (type bmp)
 <figures/sequence_attribute.png>
 
 [9] [10]
-Overfull \hbox (26.71419pt too wide) in paragraph at lines 456--456
+Overfull \hbox (26.71419pt too wide) in paragraph at lines 455--455
  []|\TU/TimesNewRoman(0)/m/n/12 resource/tmx/village1.tmx| 
  []
 
 
-Overfull \hbox (20.71419pt too wide) in paragraph at lines 457--457
+Overfull \hbox (20.71419pt too wide) in paragraph at lines 456--456
  []|\TU/TimesNewRoman(0)/m/n/12 resource/tmx/temple.tmx| 
  []
 
 
-Overfull \hbox (4.72395pt too wide) in paragraph at lines 458--458
+Overfull \hbox (4.72395pt too wide) in paragraph at lines 457--457
  []|\TU/TimesNewRoman(0)/m/n/12 resource/tmx/test.tmx| 
  []
 
 
-Overfull \hbox (30.71028pt too wide) in paragraph at lines 459--459
+Overfull \hbox (30.71028pt too wide) in paragraph at lines 458--458
  []|\TU/TimesNewRoman(0)/m/n/12 resource/font/newfont.TTF| 
  []
 
 
-Overfull \hbox (22.06184pt too wide) in paragraph at lines 460--460
+Overfull \hbox (22.06184pt too wide) in paragraph at lines 459--459
  []|\TU/TimesNewRoman(0)/m/n/12 resource/sound/bgm.mp3| 
  []
 
 
-Overfull \hbox (23.39192pt too wide) in paragraph at lines 461--461
+Overfull \hbox (23.39192pt too wide) in paragraph at lines 460--460
  []|\TU/TimesNewRoman(0)/m/n/12 resource/sound/fight.mp3| 
  []
 

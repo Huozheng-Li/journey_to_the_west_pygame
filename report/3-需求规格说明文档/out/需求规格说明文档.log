@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.5.17)  24 JUN 2026 16:38
+This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.5.17)  24 JUN 2026 17:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1057,12 +1057,12 @@ Package hyperref Info: Link coloring OFF on input line 67.
 
 \c@lstlisting=\count360
 
-Underfull \hbox (badness 10000) in paragraph at lines 75--81
+Underfull \hbox (badness 10000) in paragraph at lines 75--80
 
  []
 
 
-Overfull \hbox (24.0pt too wide) in paragraph at lines 82--83
+Overfull \hbox (24.0pt too wide) in paragraph at lines 81--82
 [][] 
  []
 
@@ -1109,63 +1109,63 @@ File: figures/sequence_dialog.png Graphic file (type bmp)
 File: figures/sequence_battle.png Graphic file (type bmp)
 <figures/sequence_battle.png>
  [19]
-Overfull \hbox (26.71419pt too wide) in paragraph at lines 792--792
+Overfull \hbox (26.71419pt too wide) in paragraph at lines 791--791
  []|\TU/TimesNewRoman(0)/m/n/12 resource/tmx/village1.tmx| 
  []
 
 
-Overfull \hbox (20.71419pt too wide) in paragraph at lines 793--793
+Overfull \hbox (20.71419pt too wide) in paragraph at lines 792--792
  []|\TU/TimesNewRoman(0)/m/n/12 resource/tmx/temple.tmx| 
  []
 
 
-Overfull \hbox (4.72395pt too wide) in paragraph at lines 794--794
+Overfull \hbox (4.72395pt too wide) in paragraph at lines 793--793
  []|\TU/TimesNewRoman(0)/m/n/12 resource/tmx/test.tmx| 
  []
 
 
-Overfull \hbox (30.71028pt too wide) in paragraph at lines 795--795
+Overfull \hbox (30.71028pt too wide) in paragraph at lines 794--794
  []|\TU/TimesNewRoman(0)/m/n/12 resource/font/newfont.TTF| 
  []
 
 
-Overfull \hbox (22.06184pt too wide) in paragraph at lines 796--796
+Overfull \hbox (22.06184pt too wide) in paragraph at lines 795--795
  []|\TU/TimesNewRoman(0)/m/n/12 resource/sound/bgm.mp3| 
  []
 
 
-Overfull \hbox (23.39192pt too wide) in paragraph at lines 797--797
+Overfull \hbox (23.39192pt too wide) in paragraph at lines 796--796
  []|\TU/TimesNewRoman(0)/m/n/12 resource/sound/fight.mp3| 
  []
 
 [20]
-Overfull \hbox (31.46028pt too wide) in paragraph at lines 854--854
+Overfull \hbox (31.46028pt too wide) in paragraph at lines 853--853
  []|\TU/TimesNewRoman(0)/m/n/12 BASE_ATTACK_POWER| 
  []
 
 
-Overfull \hbox (7.09114pt too wide) in paragraph at lines 855--855
+Overfull \hbox (7.09114pt too wide) in paragraph at lines 854--854
  []|\TU/TimesNewRoman(0)/m/n/12 ELDER_HP_BONUS| 
  []
 
 
-Overfull \hbox (31.82942pt too wide) in paragraph at lines 856--856
+Overfull \hbox (31.82942pt too wide) in paragraph at lines 855--855
  []|\TU/TimesNewRoman(0)/m/n/12 TANG_ATTACK_BONUS| 
  []
 
 
-Overfull \hbox (33.75716pt too wide) in paragraph at lines 857--857
+Overfull \hbox (33.75716pt too wide) in paragraph at lines 856--856
  []|\TU/TimesNewRoman(0)/m/n/12 MAX_ELDER_BONUSES| 
  []
 
 
-Overfull \hbox (27.46419pt too wide) in paragraph at lines 858--858
+Overfull \hbox (27.46419pt too wide) in paragraph at lines 857--857
  []|\TU/TimesNewRoman(0)/m/n/12 MAX_TANG_BONUSES| 
  []
 
 [21]
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 900.
+nput line 899.
 
 Package fontspec Info: 
 (fontspec)             Could not resolve font "FangSong/BI" (it probably
