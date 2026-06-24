@@ -1,0 +1,131 @@
+@startuml NPC对话交互-序列图
+
+skinparam sequenceFontSize 14
+skinparam defaultFontSize 12
+skinparam arrowFontSize 12
+skinparam sequenceLifeLineBorderColor #A80036
+skinparam sequenceParticipantBackgroundColor #FEFECE
+skinparam sequenceParticipantBorderColor #A80036
+skinparam sequenceArrowColor #555555
+
+title NPC对话交互 - 序列图
+
+actor "玩家" as Player
+participant "VillageScene" as VS
+participant "Player" as P
+participant "NPCBase" as NPC
+participant "DialogSystem" as DS
+participant "PlayerStats" as PS
+
+== 正常对话流程 ==
+
+Player -> VS : 按空格键
+activate VS
+
+VS -> P : get_col_rect()
+activate P
+P --> VS : player_rect
+deactivate P
+
+VS -> NPC : get_rect().inflate(20,20)
+activate NPC
+NPC --> VS : npc_rect
+deactivate NPC
+
+VS -> VS : 检测碰撞
+
+alt 玩家在交互范围内
+    VS -> NPC : get_dialog()
+    activate NPC
+    NPC --> VS : dialog
+    deactivate NPC
+
+    VS -> DS : start_dialog(dialog)
+    activate DS
+    DS -> DS : 显示对话框
+
+    loop 对话未结束
+        Player -> VS : 按空格键
+        VS -> NPC : next_dialog()
+        activate NPC
+        NPC --> VS : has_next
+        deactivate NPC
+
+        alt 对话还有下一句
+            VS -> NPC : get_dialog()
+            activate NPC
+            NPC --> VS : next_dialog
+            deactivate NPC
+            VS -> DS : start_dialog(next_dialog)
+        else 对话结束
+            VS -> DS : end_dialog()
+            deactivate DS
+            VS -> P : is_talking = False
+        end
+    end
+
+    VS -> VS : 判断NPC类型
+
+    alt NPC是Elder
+        VS -> PS : add_elder_hp()
+        activate PS
+        PS --> VS : success
+        deactivate PS
+        VS -> VS : 显示HP+20通知
+    else NPC是Tang
+        VS -> PS : add_tang_attack()
+        activate PS
+        PS --> VS : success
+        deactivate PS
+        VS -> VS : 显示ATK+10通知
+    else NPC是God
+        VS -> VS : next_scene = temple
+    end
+end
+
+deactivate VS
+
+== 鼓励对话流程(战斗失败后) ==
+
+Player -> VS : 进入村庄
+activate VS
+
+VS -> PS : 检查战斗状态
+activate PS
+PS --> VS : has_been_to_battle=True, last_battle_won=False
+deactivate PS
+
+VS -> VS : _auto_talk_to_god()
+VS -> NPC : get_encourage_dialog()
+activate NPC
+NPC --> VS : encourage_dialog
+deactivate NPC
+
+VS -> DS : start_dialog(encourage_dialog)
+activate DS
+
+loop 鼓励对话未结束
+    Player -> VS : 按空格键
+    VS -> NPC : next_encourage_dialog()
+    activate NPC
+    NPC --> VS : has_next
+    deactivate NPC
+
+    alt 还有下一句鼓励话
+        VS -> NPC : get_encourage_dialog()
+        activate NPC
+        NPC --> VS : next_dialog
+        deactivate NPC
+        VS -> DS : start_dialog(next_dialog)
+    else 鼓励对话结束
+        VS -> DS : end_dialog()
+        deactivate DS
+        VS -> P : is_talking = False
+        VS -> VS : is_auto_encourage = False
+        VS -> NPC : reset_dialog()
+    end
+end
+
+deactivate VS
+
+@enduml

@@ -1,0 +1,97 @@
+@startuml 村庄场景活动图
+
+skinparam activityFontSize 13
+skinparam defaultFontSize 11
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+skinparam arrowColor #555555
+skinparam swimlaneBackgroundColor #F5F5F5
+
+title 村庄场景活动图
+
+|VillageScene|
+start
+:on_enter();
+:加载village1.tmx地图;
+:从TMX加载障碍物;
+:从TMX加载NPC(god, elder, tang);
+:从TMX加载玩家出生点;
+:创建DialogSystem;
+
+if (从战斗失败返回?) then (是)
+    :自动触发土地公鼓励对话;
+    :播放鼓励对话;
+endif
+
+:播放背景音乐(bgm);
+
+repeat
+
+    |玩家|
+    :WASD移动输入;
+
+    |VillageScene|
+    if (对话进行中?) then (是)
+        if (按空格键?) then (是)
+            |NPC|
+            :next_dialog();
+            if (还有下一句?) then (是)
+                :显示下一句;
+            else (否)
+                |VillageScene|
+                :结束对话;
+                :dialog_system.end_dialog();
+                :player.is_talking = False;
+
+                if (当前NPC是Elder?) then (是)
+                    :player_stats.add_elder_hp();
+                    :显示HP+20通知;
+                elseif (当前NPC是Tang?) then (是)
+                    :player_stats.add_tang_attack();
+                    :显示ATK+10通知;
+                elseif (当前NPC是God?) then (是)
+                    :next_scene = 'temple';
+                endif
+            endif
+        endif
+
+        if (按ESC键?) then (是)
+            |VillageScene|
+            :结束对话;
+            :dialog_system.end_dialog();
+            :player.is_talking = False;
+        endif
+    else (否)
+        |Player|
+        :处理移动(检测碰撞);
+
+        |VillageScene|
+        :更新所有NPC;
+        :更新相机位置;
+
+        :检测附近NPC;
+
+        if (靠近NPC?) then (是)
+            :显示交互提示;
+            if (按空格键?) then (是)
+                :获取NPC对话;
+                :dialog_system.start_dialog();
+                :player.is_talking = True;
+            endif
+        else (否)
+            :隐藏提示;
+        endif
+    endif
+
+    |VillageScene|
+    :绘制地图;
+    :绘制NPC;
+    :绘制玩家;
+    :绘制对话框;
+    :绘制通知;
+
+repeat while (is_active = True)
+
+stop
+
+@enduml

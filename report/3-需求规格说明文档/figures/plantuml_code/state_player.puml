@@ -1,0 +1,91 @@
+@startuml 玩家状态-状态图
+
+skinparam stateFontSize 14
+skinparam defaultFontSize 12
+skinparam arrowFontSize 12
+skinparam stateBackgroundColor #FEFECE
+skinparam stateBorderColor #A80036
+skinparam stateDiamondBackgroundColor #E8F5E9
+skinparam stateDiamondBorderColor #4CAF50
+skinparam arrowColor #555555
+
+title 玩家状态转换 - 状态图
+
+state "探索模式 (Player)" as Explore {
+
+    state "站立" as Idle
+    state "移动" as Moving
+    state "对话" as Talking
+    state "触发场景" as TriggerScene
+
+    [*] --> Idle
+
+    Idle --> Moving : WASD输入
+    Moving --> Idle : 停止移动
+    Moving --> Moving : 持续移动
+
+    Idle --> Talking : 按空格(靠近NPC)
+    Talking --> Idle : 对话结束
+
+    Talking --> TriggerScene : 土地公对话结束
+    TriggerScene --> [*] : next_scene = temple
+}
+
+state "战斗模式 (BattlePlayer)" as BattleMode {
+
+    state "站立" as BIdle
+    state "移动" as BMoving
+    state "攻击" as Attacking
+    state "受伤" as Damaged
+    state "死亡" as Dead
+
+    [*] --> BIdle
+
+    BIdle --> BMoving : WASD输入
+    BMoving --> BIdle : 停止移动
+    BMoving --> BMoving : 持续移动
+
+    BIdle --> Attacking : 鼠标左键
+    BMoving --> Attacking : 鼠标左键
+    Attacking --> BIdle : 攻击动画结束(20帧)
+
+    BIdle --> Damaged : 受到伤害
+    BMoving --> Damaged : 受到伤害
+    Attacking --> Damaged : 受到伤害
+
+    Damaged --> BIdle : 受击效果结束(10帧)
+    Damaged --> Damaged : 持续受伤
+
+    Damaged --> Dead : HP <= 0
+    BIdle --> Dead : HP <= 0
+    BMoving --> Dead : HP <= 0
+    Attacking --> Dead : HP <= 0
+
+    Dead --> [*]
+}
+
+state "属性状态 (PlayerStats)" as AttributeState {
+
+    state "初始状态" as Initial
+    state "强化状态" as Enhanced
+    state "战斗后" as AfterBattle
+
+    [*] --> Initial : HP=60, ATK=5
+
+    Initial --> Enhanced : 与Elder交互 HP+20
+    Initial --> Enhanced : 与Tang交互 ATK+10
+
+    Enhanced --> Enhanced : 继续交互(未达上限)
+    Enhanced --> AfterBattle : 进入战斗
+
+    AfterBattle --> Enhanced : 返回村庄继续强化
+    AfterBattle --> Initial : reset()
+}
+
+Explore --> BattleMode : 进入战斗
+BattleMode --> Explore : 返回村庄
+Explore --> AttributeState : 交互加成
+BattleMode --> AttributeState : 读取属性
+AttributeState --> BattleMode : 传递属性
+
+@enduml

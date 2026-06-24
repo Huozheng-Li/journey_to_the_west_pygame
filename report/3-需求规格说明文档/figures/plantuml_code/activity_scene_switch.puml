@@ -1,0 +1,84 @@
+@startuml 场景切换流程-活动图
+
+skinparam activityFontSize 14
+skinparam defaultFontSize 12
+skinparam arrowFontSize 12
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+skinparam activityDiamondBackgroundColor #E8F5E9
+skinparam activityDiamondBorderColor #4CAF50
+skinparam arrowColor #555555
+
+title 场景切换流程 - 活动图
+
+|玩家|
+start
+:在村庄探索;
+
+|系统|
+:播放bgm.mp3;
+
+|玩家|
+:靠近土地公;
+:按空格键触发对话;
+
+|系统|
+:显示对话框;
+
+|玩家|
+:按空格继续对话;
+
+|系统|
+:对话结束;
+:触发场景切换;
+
+|系统|
+:渐弱当前音乐;
+:音量从1.0→0.0 (30帧);
+:加载新音乐;
+:播放bgm.mp3 (强制重播);
+
+|系统|
+:执行FadeScene渐变;
+:alpha 0→255→0;
+
+|系统|
+:加载寺庙场景;
+:播放bgm.mp3;
+
+|玩家|
+:在寺庙探索;
+:靠近牛怪;
+:按空格键触发战斗;
+
+|系统|
+:渐弱当前音乐;
+:音量从1.0→0.0 (30帧);
+:加载fight.mp3;
+:播放fight.mp3;
+
+|系统|
+:执行FadeScene渐变;
+:加载战斗场景;
+
+|玩家|
+:进行实时战斗;
+
+|系统|
+:战斗结束;
+:渐弱fight.mp3;
+:加载bgm.mp3;
+:切换到结算画面;
+
+|玩家|
+:查看结算信息;
+:按空格返回村庄;
+
+|系统|
+:渐弱当前音乐;
+:加载bgm.mp3;
+:加载村庄场景;
+
+stop
+
+@enduml

@@ -1,0 +1,58 @@
+@startuml 场景切换活动图
+
+skinparam activityFontSize 13
+skinparam defaultFontSize 11
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+skinparam arrowColor #555555
+
+title 场景切换活动图
+
+|SceneManager|
+start
+:接收set_current_scene(name, use_fade);
+
+if (use_fade = True AND 当前有场景?) then (是)
+    :截图当前屏幕;
+    :创建FadeScene(screenshot);
+    :is_transitioning = True;
+
+    |FadeScene|
+    :status = Out;
+    :alpha = 255;
+
+    while (alpha > 0) is (是)
+        :alpha -= 20;
+        :渲染当前alpha的截图;
+    endwhile (否)
+
+    :status = Over;
+
+    |SceneManager|
+    :旧场景.on_exit();
+    :current_scene = 新场景;
+    :新场景.on_enter();
+
+    |FadeScene|
+    :status = In;
+    :alpha = 0;
+
+    while (alpha < 255) is (是)
+        :alpha += 20;
+        :渲染当前alpha的截图;
+    endwhile (否)
+
+    :status = Normal;
+
+    |SceneManager|
+    :is_transitioning = False;
+
+else (否)
+    :旧场景.on_exit();
+    :current_scene = 新场景;
+    :新场景.on_enter();
+endif
+
+stop
+
+@enduml

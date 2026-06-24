@@ -1,0 +1,74 @@
+@startuml 游戏主循环活动图
+
+skinparam activityFontSize 13
+skinparam defaultFontSize 11
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+skinparam arrowColor #555555
+
+title 游戏主循环活动图
+
+start
+
+:初始化Pygame;
+:创建显示窗口(800x600);
+:创建Clock对象;
+
+:创建SoundSystem;
+:创建PlayerStats;
+:创建SceneManager;
+
+:注册场景;
+note right
+    village -> VillageScene
+    temple -> TempleScene
+    battle -> BattleScene
+    settlement -> SettlementScene
+    end_win -> EndScene(True)
+    end_lose -> EndScene(False)
+end note
+
+:设置初始场景('village', use_fade=False);
+
+while (running = True) is (是)
+
+    :获取事件列表;
+
+    if (退出事件?) then (是)
+        :running = False;
+    else (否)
+        :scene_manager.handle_events(events);
+
+        if (is_transitioning = False?) then (是)
+            :scene_manager.update();
+
+            :scene_manager.draw();
+
+            :sound_system.update();
+
+            if (current_scene.next_scene != None?) then (是)
+                :scene_manager.set_current_scene(next_scene);
+            endif
+
+            if (current_scene.is_active = False?) then (是)
+                if (scene_stack 为空?) then (是)
+                    :running = False;
+                else (否)
+                    :scene_manager.pop_scene();
+                endif
+            endif
+        endif
+
+        :pygame.display.flip();
+
+        :clock.tick(FPS=40);
+    endif
+
+endwhile (否)
+
+:退出Pygame;
+:结束程序;
+
+stop
+
+@enduml

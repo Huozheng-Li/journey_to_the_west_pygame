@@ -1,0 +1,74 @@
+@startuml 用例图
+
+skinparam usecaseFontSize 13
+skinparam defaultFontSize 11
+skinparam usecaseBackgroundColor #FEFECE
+skinparam usecaseBorderColor #A80036
+skinparam actorBorderColor #A80036
+skinparam packageBackgroundColor #F5F5F5
+skinparam packageBorderColor #CCCCCC
+skinparam arrowColor #555555
+
+title 系统用例图
+
+left to right direction
+
+actor "玩家" as Player
+
+rectangle "基于Pygame的2D西游记RPG小游戏" {
+
+    package "场景探索" {
+        usecase "WASD移动" as UC1
+        usecase "方向键移动" as UC2
+        usecase "查看地图" as UC3
+    }
+
+    package "NPC交互" {
+        usecase "与村民对话" as UC4
+        usecase "与唐僧对话" as UC5
+        usecase "与土地公对话" as UC6
+        usecase "获取HP加成" as UC7
+        usecase "获取ATK加成" as UC8
+    }
+
+    package "战斗系统" {
+        usecase "触发战斗" as UC9
+        usecase "鼠标攻击" as UC10
+        usecase "击败敌人" as UC11
+        usecase "完成波次" as UC12
+    }
+
+    package "系统功能" {
+        usecase "场景切换" as UC13
+        usecase "查看结算" as UC14
+        usecase "返回村庄" as UC15
+    }
+}
+
+' 玩家用例关系
+Player --> UC1
+Player --> UC2
+Player --> UC3
+Player --> UC4
+Player --> UC5
+Player --> UC6
+Player --> UC9
+Player --> UC10
+Player --> UC14
+Player --> UC15
+
+' NPC交互关系
+UC4 ..> UC7 : <<include>>
+UC5 ..> UC8 : <<include>>
+UC6 ..> UC13 : <<include>>
+
+' 战斗系统关系
+UC9 ..> UC10 : <<include>>
+UC10 ..> UC11 : <<include>>
+UC11 ..> UC12 : <<include>>
+UC12 ..> UC14 : <<extend>>
+
+' 场景切换关系
+UC13 ..> UC3 : <<include>>
+
+@enduml

@@ -1,0 +1,99 @@
+@startuml 系统架构图
+
+skinparam componentFontSize 13
+skinparam defaultFontSize 11
+skinparam componentBackgroundColor #FEFECE
+skinparam componentBorderColor #A80036
+skinparam packageBackgroundColor #F5F5F5
+skinparam packageBorderColor #CCCCCC
+skinparam arrowColor #555555
+
+title 系统分层架构图
+
+package "表示层 (Presentation)" {
+    [Game主窗口] as window
+    [HUD界面] as hud
+    [对话框UI] as dialog_ui
+    [结算画面] as settlement_ui
+}
+
+package "场景层 (Scenes)" {
+    [VillageScene\n村庄场景] as village
+    [TempleScene\n寺庙场景] as temple
+    [BattleScene\n战斗场景] as battle
+    [SettlementScene\n结算场景] as settlement
+}
+
+package "角色层 (Actors)" {
+    [Player\n探索玩家] as player
+    [BattlePlayer\n战斗玩家] as battle_player
+    [NPCBase\nNPC基类] as npc
+    [EnemyBase\n怪物基类] as enemy
+    [Action\n动画控制器] as action
+}
+
+package "系统层 (Systems)" {
+    [DialogSystem\n对话系统] as dialog_sys
+    [PlayerStats\n属性系统] as stats
+    [SoundSystem\n音效系统] as sound
+    [CollisionSystem\n碰撞系统] as collision
+}
+
+package "核心层 (Core)" {
+    [SceneManager\n场景管理器] as scene_mgr
+    [FadeScene\n渐变效果] as fade
+}
+
+package "工具层 (Utils)" {
+    [TiledScene\nTMX渲染器] as tiled
+    [pytmx库] as pytmx
+}
+
+package "外部依赖" {
+    [Pygame框架] as pygame
+    [Python标准库] as python
+}
+
+' 层间关系
+window --> scene_mgr : 事件/渲染
+scene_mgr --> village
+scene_mgr --> temple
+scene_mgr --> battle
+scene_mgr --> settlement
+scene_mgr --> fade : 渐变过渡
+
+village --> player
+village --> npc
+village --> dialog_sys
+village --> stats
+village --> tiled
+
+temple --> player
+temple --> enemy
+temple --> tiled
+
+battle --> battle_player
+battle --> enemy
+battle --> stats
+battle --> tiled
+
+settlement --> stats
+
+player --> action
+battle_player --> action
+npc --> action
+enemy --> action
+
+player --> collision
+battle_player --> collision
+npc --> collision
+enemy --> collision
+
+dialog_sys --> pygame : 绘制UI
+sound --> pygame : 音频播放
+tiled --> pytmx : 地图解析
+tiled --> pygame : 图像渲染
+
+scene_mgr --> sound : 场景切换音乐
+
+@enduml

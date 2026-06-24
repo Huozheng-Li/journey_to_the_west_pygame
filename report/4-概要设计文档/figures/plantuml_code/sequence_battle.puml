@@ -1,0 +1,158 @@
+@startuml 战斗交互时序图
+
+skinparam sequenceFontSize 13
+skinparam defaultFontSize 11
+skinparam arrowFontSize 11
+skinparam sequenceLifeLineBorderColor #A80036
+skinparam sequenceParticipantBackgroundColor #FEFECE
+skinparam sequenceParticipantBorderColor #A80036
+skinparam sequenceArrowColor #555555
+
+title 战斗交互时序图
+
+actor "玩家" as Player
+participant "BattleScene" as BS
+participant "BattlePlayer" as BP
+participant "Cattle\n(敌人)" as Enemy
+participant "PlayerStats" as PS
+
+== 战斗开始 ==
+
+Player -> BS : 进入战斗场景
+activate BS
+
+BS -> PS : 读取hp, attack_power
+activate PS
+PS --> BS : hp=80, attack_power=15
+deactivate PS
+
+BS -> BP : 创建BattlePlayer(hp=80, atk=15)
+activate BP
+deactivate BP
+
+BS -> BS : current_wave = 0
+BS -> BS : _spawn_wave()
+BS -> Enemy : 创建Cattle(spawn_point)
+activate Enemy
+
+== 战斗循环 ==
+
+loop 战斗未结束
+
+    Player -> BS : WASD输入
+    BS -> BP : update(keys)
+    activate BP
+    BP -> BP : 处理移动
+    deactivate BP
+
+    Player -> BS : 鼠标左键点击
+    BS -> BP : start_attack()
+    activate BP
+    BP -> BP : is_attacking = True
+    BP -> BP : 播放攻击动画(20帧)
+    deactivate BP
+
+    BS -> BP : get_attack_rect()
+    activate BP
+    BP --> BS : attack_rect
+    deactivate BP
+
+    BS -> Enemy : get_rect()
+    activate Enemy
+    Enemy --> BS : enemy_rect
+    deactivate Enemy
+
+    BS -> BS : 检查碰撞
+
+    alt 攻击命中敌人
+        BS -> Enemy : take_damage(attack_power)
+        activate Enemy
+        Enemy -> Enemy : hp -= attack_power
+        Enemy -> Enemy : trigger_hit_effect()
+        Enemy --> BS : 伤害生效
+        deactivate Enemy
+
+        alt 敌人HP <= 0
+            BS -> BS : enemies_defeated++
+            BS -> BS : current_wave++
+            BS -> BS : between_waves = True
+            BS -> BS : wave_timer = 90
+        end
+    end
+
+    BS -> Enemy : chase_and_attack(player_x, player_y)
+    activate Enemy
+    Enemy -> Enemy : 计算距离
+
+    alt 距离 < 攻击范围(40px) AND 冷却结束
+        Enemy -> Enemy : is_attacking = True
+        Enemy -> Enemy : set_state('fight')
+    else 距离 < 仇恨范围(300px)
+        Enemy -> Enemy : set_state('run')
+        Enemy -> Enemy : 向玩家移动(speed=1.5)
+    else 超出范围
+        Enemy -> Enemy : set_state('station')
+    end
+    deactivate Enemy
+
+    BS -> Enemy : update()
+    activate Enemy
+    Enemy -> Enemy : update_hit_effect()
+    Enemy -> Enemy : _update_animation()
+    deactivate Enemy
+
+    BS -> Enemy : try_deal_damage()
+    activate Enemy
+    alt 攻击动画结束
+        Enemy --> BS : attack_power (10)
+        Enemy -> Enemy : is_attacking = False
+        Enemy -> Enemy : set_state('station')
+
+        BS -> BP : take_damage(10)
+        activate BP
+        BP -> BP : hp -= 10
+        BP -> BP : trigger_hit_effect()
+        deactivate BP
+    else 攻击未结束
+        Enemy --> BS : 0
+    end
+    deactivate Enemy
+
+    alt 玩家HP <= 0
+        BS -> BS : battle_over = True
+        BS -> BS : battle_won = False
+    end
+
+end
+
+== 波次切换 ==
+
+note over BS : between_waves = True
+
+loop wave_timer > 0
+    BS -> BS : wave_timer -= 1
+end
+
+BS -> BS : between_waves = False
+BS -> Enemy : 创建新Cattle(spawn_point)
+activate Enemy
+
+note over BS : 当 current_wave >= total_waves
+
+BS -> BS : battle_won = True
+BS -> BS : battle_over = True
+
+== 战斗结束 ==
+
+BS -> PS : total_enemies_defeated = enemies_defeated
+activate PS
+BS -> PS : last_battle_won = battle_won
+BS -> PS : has_been_to_battle = True
+deactivate PS
+
+BS -> BS : next_scene = 'settlement'
+
+deactivate Enemy
+deactivate BS
+
+@enduml

@@ -1,0 +1,128 @@
+@startuml 属性系统时序图
+
+skinparam sequenceFontSize 13
+skinparam defaultFontSize 11
+skinparam arrowFontSize 11
+skinparam sequenceLifeLineBorderColor #A80036
+skinparam sequenceParticipantBackgroundColor #FEFECE
+skinparam sequenceParticipantBorderColor #A80036
+skinparam sequenceArrowColor #555555
+
+title 属性系统时序图
+
+actor "玩家" as Player
+participant "VillageScene" as VS
+participant "NPC\n(Elder/Tang)" as NPC
+participant "PlayerStats" as PS
+participant "BattleScene" as BS
+participant "BattlePlayer" as BP
+
+== 初始化 ==
+
+VS -> PS : 创建PlayerStats()
+activate PS
+PS -> PS : hp = BASE_HP (60)
+PS -> PS : attack_power = BASE_ATK (5)
+PS -> PS : elder_bonus_count = 0
+PS -> PS : tang_bonus_count = 0
+deactivate PS
+
+== 村庄交互加成 ==
+
+Player -> VS : 靠近NPC按空格
+activate VS
+
+VS -> NPC : get_dialog()
+activate NPC
+NPC --> VS : dialog
+deactivate NPC
+
+VS -> VS : 显示对话框
+
+Player -> VS : 按空格继续
+VS -> NPC : next_dialog()
+activate NPC
+NPC --> VS : has_next = False
+deactivate NPC
+
+VS -> VS : 对话结束
+
+alt NPC是Elder
+    VS -> PS : add_elder_hp()
+    activate PS
+    alt elder_bonus_count < 4
+        PS -> PS : hp += 20
+        PS -> PS : elder_bonus_count += 1
+        PS --> VS : return True
+    else 已达上限
+        PS --> VS : return False
+    end
+    deactivate PS
+    VS -> VS : 显示"+HP 20"通知
+
+else NPC是Tang
+    VS -> PS : add_tang_attack()
+    activate PS
+    alt tang_bonus_count < 1
+        PS -> PS : attack_power += 10
+        PS -> PS : tang_bonus_count += 1
+        PS --> VS : return True
+    else 已达上限
+        PS --> VS : return False
+    end
+    deactivate PS
+    VS -> VS : 显示"+ATK 10"通知
+end
+
+deactivate VS
+
+== 战斗场景读取属性 ==
+
+Player -> BS : 进入战斗场景
+activate BS
+
+BS -> PS : 读取hp, attack_power
+activate PS
+PS --> BS : hp=100, attack_power=15
+deactivate PS
+
+BS -> BP : 创建BattlePlayer(hp=100, atk=15)
+activate BP
+BP -> BP : self.hp = 100
+BP -> BP : self.attack_power = 15
+deactivate BP
+
+deactivate BS
+
+== 战斗中使用属性 ==
+
+BS -> BP : start_attack()
+activate BP
+BP -> BP : is_attacking = True
+deactivate BP
+
+BS -> BP : get_attack_rect()
+activate BP
+BP --> BS : attack_rect
+deactivate BP
+
+BS -> BS : 检测碰撞
+
+BS -> BP : take_damage(damage)
+activate BP
+BP -> BP : hp -= damage
+BP -> BP : trigger_hit_effect()
+deactivate BP
+
+== 战斗结束更新属性 ==
+
+BS -> PS : 写入战斗结果
+activate PS
+PS -> PS : total_enemies_defeated = 3
+PS -> PS : last_battle_won = True
+PS -> PS : has_been_to_battle = True
+deactivate PS
+
+BS -> BS : next_scene = 'settlement'
+
+@enduml

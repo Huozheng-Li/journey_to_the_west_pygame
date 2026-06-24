@@ -1,0 +1,64 @@
+@startuml 敌人AI状态机
+
+skinparam stateFontSize 13
+skinparam defaultFontSize 11
+skinparam stateBackgroundColor #FEFECE
+skinparam stateBorderColor #A80036
+skinparam stateDiamondBackgroundColor #E8F5E9
+skinparam stateDiamondBorderColor #4CAF50
+skinparam arrowColor #555555
+
+title 敌人AI状态转换图
+
+state "station\n(站立)" as Station
+state "run\n(追击)" as Run
+state "fight\n(攻击)" as Fight
+state "die\n(死亡)" as Die
+state "walk1\n(行走1)" as Walk1
+state "walk2\n(行走2)" as Walk2
+state "back\n(后退)" as Back
+state "look\n(观察)" as Look
+
+[*] --> Station
+
+Station --> Station : 距离 > 仇恨范围(300px)\n/set_state('station')
+Station --> Run : 距离 <= 仇恨范围(300px)\n/set_state('run')
+Station --> Fight : 距离 <= 攻击范围(40px)\nAND 冷却结束\n/set_state('fight')
+
+Run --> Run : 距离 <= 仇恨范围(300px)\n向玩家移动\n/set_state('run')
+Run --> Station : 距离 > 仇恨范围(300px)\n/set_state('station')
+Run --> Fight : 距离 <= 攻击范围(40px)\nAND 冷却结束\n/set_state('fight')
+
+Fight --> Station : 攻击动画结束\nis_attacking = False\nset_state('station')
+Fight --> Fight : 攻击动画播放中
+
+Station --> Die : HP <= 0
+Run --> Die : HP <= 0
+Fight --> Die : HP <= 0
+
+Die --> [*]
+
+note right of Station
+    默认状态
+    播放station动画
+end note
+
+note right of Run
+    追击玩家
+    chase_speed = 1.5
+    播放run动画
+end note
+
+note right of Fight
+    攻击玩家
+    attack_cooldown = 60帧
+    播放fight动画
+    动画结束时造成伤害
+end note
+
+note right of Die
+    播放die动画
+    is_alive = False
+end note
+
+@enduml

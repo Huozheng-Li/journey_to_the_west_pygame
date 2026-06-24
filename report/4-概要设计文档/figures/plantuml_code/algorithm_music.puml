@@ -1,0 +1,67 @@
+@startuml 音乐渐弱切换算法
+
+skinparam activityFontSize 13
+skinparam defaultFontSize 11
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+skinparam arrowColor #555555
+
+title 音乐渐弱切换算法
+
+|SoundSystem|
+start
+:play_music(music_name, loop, ext, force_restart);
+
+if (当前播放相同音乐 AND force_restart=False?) then (是)
+    :跳过，直接返回;
+    stop
+endif
+
+if (当前有音乐播放?) then (是)
+    :_fade_and_switch(music_name, ext);
+    :fade_timer = 30;
+    :fade_callback = lambda: _load_and_play(music_name, ext);
+else (否)
+    :_load_and_play(music_name, ext);
+    :pygame.mixer.music.load(文件路径);
+    :pygame.mixer.music.play(-1);
+endif
+
+stop
+
+|主循环调用|
+start
+:update();
+
+if (fade_timer > 0?) then (是)
+    :fade_timer -= 1;
+    :volume = fade_timer / 30;
+    :pygame.mixer.music.set_volume(volume);
+
+    if (fade_timer = 0?) then (是)
+        :执行fade_callback();
+        :新音乐开始播放;
+    endif
+endif
+
+stop
+
+|_fade_and_switch|
+start
+:_fade_and_switch(new_music, ext);
+:fade_timer = 30;
+:fade_callback = lambda: _load_and_play(new_music, ext);
+
+stop
+
+|_load_and_play|
+start
+:_load_and_play(music_name, ext);
+:构造文件路径 = f"resource/sound/{music_name}.{ext}";
+:pygame.mixer.music.load(文件路径);
+:pygame.mixer.music.play(-1, start=0);
+:current_music = music_name;
+
+stop
+
+@enduml

@@ -1,0 +1,103 @@
+@startuml 数据流图
+
+skinparam defaultFontSize 11
+skinparam rectangleBackgroundColor #FEFECE
+skinparam rectangleBorderColor #A80036
+skinparam arrowColor #555555
+skinparam databaseBackgroundColor #E8F5E9
+skinparam databaseBorderColor #4CAF50
+
+title 数据流图
+
+rectangle "玩家输入" as Input {
+    note as N1
+        键盘输入
+        鼠标输入
+    end note
+}
+
+rectangle "显示输出" as Output {
+    note as N2
+        游戏画面
+        HUD界面
+        对话框
+    end note
+}
+
+rectangle "Game主循环" as Game {
+    rectangle "事件处理" as EventProcess
+    rectangle "状态更新" as StateUpdate
+    rectangle "画面渲染" as Render
+}
+
+rectangle "SceneManager" as SM {
+    rectangle "场景调度" as SceneDispatch
+    rectangle "渐变控制" as FadeControl
+}
+
+rectangle "场景层" as Scenes {
+    rectangle "VillageScene" as Village
+    rectangle "TempleScene" as Temple
+    rectangle "BattleScene" as Battle
+    rectangle "SettlementScene" as Settlement
+}
+
+rectangle "系统层" as Systems {
+    rectangle "PlayerStats" as Stats
+    rectangle "SoundSystem" as Sound
+    rectangle "DialogSystem" as Dialog
+}
+
+rectangle "角色层" as Actors {
+    rectangle "Player" as Player
+    rectangle "BattlePlayer" as BattlePlayer
+    rectangle "NPC" as NPC
+    rectangle "Enemy" as Enemy
+}
+
+database "资源文件" as Resources {
+    database "TMX地图" as TMX
+    database "精灵图片" as Sprites
+    database "音频文件" as Audio
+    database "字体文件" as Font
+}
+
+database "运行时数据" as Runtime {
+    database "PlayerStats" as PSData
+    database "场景状态" as SceneState
+    database "角色状态" as ActorState
+}
+
+Input --> EventProcess : 事件队列
+EventProcess --> SceneDispatch : 场景控制指令
+SceneDispatch --> Village : 场景切换
+SceneDispatch --> Temple : 场景切换
+SceneDispatch --> Battle : 场景切换
+SceneDispatch --> Settlement : 场景切换
+
+Village --> StateUpdate : 状态更新请求
+Temple --> StateUpdate : 状态更新请求
+Battle --> StateUpdate : 状态更新请求
+Settlement --> StateUpdate : 状态更新请求
+
+StateUpdate --> ActorState : 更新角色状态
+StateUpdate --> PSData : 更新属性数据
+
+ActorState --> Render : 角色状态
+SceneState --> Render : 场景状态
+Render --> Output : 渲染帧
+
+TMX --> Village : 加载地图
+TMX --> Temple : 加载地图
+TMX --> Battle : 加载地图
+Sprites --> Actors : 加载精灵
+Audio --> Sound : 加载音频
+Font --> Dialog : 加载字体
+Font --> Render : 加载字体
+
+PSData --> Battle : 读取属性
+PSData --> Village : 更新属性
+
+Sound --> Output : 音频输出
+
+@enduml

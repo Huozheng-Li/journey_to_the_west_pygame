@@ -1,0 +1,75 @@
+@startuml 战斗状态-状态图
+
+skinparam stateFontSize 14
+skinparam defaultFontSize 12
+skinparam arrowFontSize 12
+skinparam stateBackgroundColor #FEFECE
+skinparam stateBorderColor #A80036
+skinparam stateDiamondBackgroundColor #E8F5E9
+skinparam stateDiamondBorderColor #4CAF50
+skinparam arrowColor #555555
+
+title 战斗状态转换 - 状态图
+
+[*] --> 波次1 : 进入战斗场景
+
+state "波次1" as W1 {
+    state "玩家行动" as W1P
+    state "敌人行动" as W1E
+    state "伤害判定" as W1D
+
+    [*] --> W1P
+    W1P --> W1E : 玩家操作完成
+    W1E --> W1D : 敌人操作完成
+    W1D --> W1P : 伤害处理完成
+}
+
+state "波次2" as W2 {
+    state "玩家行动" as W2P
+    state "敌人行动" as W2E
+    state "伤害判定" as W2D
+
+    [*] --> W2P
+    W2P --> W2E : 玩家操作完成
+    W2E --> W2D : 敌人操作完成
+    W2D --> W2P : 伤害处理完成
+}
+
+state "波次3" as W3 {
+    state "玩家行动" as W3P
+    state "敌人行动" as W3E
+    state "伤害判定" as W3D
+
+    [*] --> W3P
+    W3P --> W3E : 玩家操作完成
+    W3E --> W3D : 敌人操作完成
+    W3D --> W3P : 伤害处理完成
+}
+
+W1 --> W2 : 击败波次1敌人
+W2 --> W3 : 击败波次2敌人
+
+W1 --> 失败 : 玩家HP <= 0
+W2 --> 失败 : 玩家HP <= 0
+W3 --> 失败 : 玩家HP <= 0
+
+W3 --> 胜利 : 击败波次3敌人
+
+state 胜利 {
+    [*] --> 显示胜利信息
+    显示胜利信息 --> 等待60帧
+    等待60帧 --> 更新PlayerStats
+    更新PlayerStats --> [*]
+}
+
+state 失败 {
+    [*] --> 显示失败信息
+    显示失败信息 --> 等待60帧2
+    等待60帧2 --> 更新PlayerStats2
+    更新PlayerStats2 --> [*]
+}
+
+胜利 --> [*] : next_scene = settlement
+失败 --> [*] : next_scene = settlement
+
+@enduml

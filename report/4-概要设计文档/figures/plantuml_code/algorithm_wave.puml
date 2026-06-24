@@ -1,0 +1,78 @@
+@startuml 波次切换算法
+
+skinparam activityFontSize 13
+skinparam defaultFontSize 11
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+skinparam arrowColor #555555
+
+title 波次切换算法
+
+|BattleScene|
+start
+:on_enter();
+:current_wave = 0;
+:total_waves = 3;
+:wave_delay = 90;
+:battle_over = False;
+:battle_won = False;
+
+:_spawn_wave();
+
+repeat
+
+    :更新玩家状态;
+    :更新敌人AI;
+    :检测伤害;
+
+    if (敌人HP <= 0?) then (是)
+        :enemies_defeated++;
+        :current_wave++;
+        :between_waves = True;
+        :wave_timer = wave_delay;
+
+        note right
+            波次切换延迟
+            wave_delay = 90帧
+            约2.25秒
+        end note
+
+        while (wave_timer > 0) is (是)
+            :wave_timer -= 1;
+        endwhile (否)
+
+        :between_waves = False;
+
+        if (current_wave < total_waves?) then (是)
+            :_spawn_wave();
+            note right
+                生成新敌人
+                位置: enemy_spawn
+            end note
+        else (否)
+            :battle_won = True;
+            :battle_over = True;
+        endif
+    endif
+
+    if (玩家HP <= 0?) then (是)
+        :battle_won = False;
+        :battle_over = True;
+    endif
+
+repeat while (battle_over = False)
+
+:等待60帧显示结果;
+
+:将结果写入PlayerStats;
+note right
+    PlayerStats.total_enemies_defeated = enemies_defeated
+    PlayerStats.last_battle_won = battle_won
+    PlayerStats.has_been_to_battle = True
+end note
+
+:next_scene = 'settlement';
+
+stop
+
+@enduml

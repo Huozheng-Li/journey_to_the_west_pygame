@@ -1,0 +1,330 @@
+@startuml 核心类关系图
+
+skinparam classFontSize 13
+skinparam defaultFontSize 11
+skinparam classBackgroundColor #FEFECE
+skinparam classBorderColor #A80036
+skinparam arrowColor #555555
+skinparam packageBackgroundColor #F5F5F5
+skinparam packageBorderColor #CCCCCC
+
+title 核心类关系图
+
+package "核心层 (core)" {
+    class Game {
+        - screen: Surface
+        - clock: Clock
+        - running: bool
+        + main(): void
+        + run(): void
+    }
+
+    class SceneManager {
+        - scenes: dict
+        - current_scene: SceneBase
+        - scene_stack: list
+        - fade_scene: FadeScene
+        - is_transitioning: bool
+        + add_scene(name, scene): void
+        + set_current_scene(name, use_fade): void
+        + handle_events(events): void
+        + update(): void
+        + draw(): void
+    }
+}
+
+package "角色层 (actors)" {
+    abstract class ActorBase {
+        # pos_x: float
+        # pos_y: float
+        # width: int
+        # height: int
+        # speed: int
+        # direction: int
+        # image: Surface
+        # rect: Rect
+        # hit_timer: int
+        + get_position(): tuple
+        + draw(surface, offset_x, offset_y): void
+        + trigger_hit_effect(): void
+    }
+
+    class Player {
+        - actions: dict
+        - current_action: Action
+        + update(keys, obstacles, walkable_areas): void
+        + get_foot_rect(): Rect
+    }
+
+    class BattlePlayer {
+        - hp: int
+        - max_hp: int
+        - attack_power: int
+        - is_alive: bool
+        - is_attacking: bool
+        - attack_timer: int
+        + start_attack(): void
+        + get_attack_rect(): Rect
+        + take_damage(damage): void
+        + update(keys): void
+    }
+
+    abstract class NPCBase {
+        # dialogs: list
+        # dialog_index: int
+        # is_auto_move: bool
+        + get_dialog(): dict
+        + next_dialog(): bool
+        + reset_dialog(): void
+        + auto_move(): void
+    }
+
+    class Elder {
+        - elder_type: int
+        - frames_count: int
+    }
+
+    class Tang {
+        - draw_npc(): void
+    }
+
+    class God {
+        - encourage_dialogs: list
+        - player_stats: PlayerStats
+        + get_encourage_dialog(): dict
+        + next_encourage_dialog(): bool
+    }
+
+    abstract class EnemyBase {
+        # hp: int
+        # max_hp: int
+        # attack_power: int
+        # is_alive: bool
+        # current_state: str
+        # chase_speed: float
+        # aggro_range: int
+        # attack_range: int
+        # attack_cooldown: int
+        + chase_and_attack(player_x, player_y): void
+        + try_deal_damage(): int
+        + take_damage(damage): void
+    }
+
+    class Cattle {
+        - animations: dict
+    }
+
+    class Action {
+        - images: list
+        - current_index: int
+        - frame_delay: int
+        - is_loop: bool
+        + get_current_image(): Surface
+        + peek_current_image(): Surface
+        + is_end(): bool
+        + reset(): void
+    }
+}
+
+package "系统层 (systems)" {
+    class DialogSystem {
+        - is_dialog_active: bool
+        - current_dialog: dict
+        - dialog_surface: Surface
+        + start_dialog(dialog): void
+        + end_dialog(): void
+        + draw(screen): void
+    }
+
+    class PlayerStats {
+        + BASE_HP: int = 60
+        + BASE_ATTACK_POWER: int = 5
+        + ELDER_HP_BONUS: int = 20
+        + TANG_ATTACK_BONUS: int = 10
+        + MAX_ELDER_BONUSES: int = 4
+        + MAX_TANG_BONUSES: int = 1
+        + hp: int
+        + attack_power: int
+        + elder_bonus_count: int
+        + tang_bonus_count: int
+        + total_enemies_defeated: int
+        + last_battle_won: bool
+        + has_been_to_battle: bool
+        + add_elder_hp(): bool
+        + add_tang_attack(): bool
+        + reset(): void
+    }
+
+    class SoundSystem {
+        - current_music: str
+        - sounds: dict
+        - fade_timer: int
+        - fade_duration: int
+        - fade_callback: callable
+        + play_music(music_name, loop, ext, force_restart): void
+        + play_sound(sound_name): void
+        + update(): void
+        - _fade_and_switch(new_music, ext): void
+        - _load_and_play(music_name, ext): void
+    }
+
+    class CollisionSystem {
+        + {static} check_rect_collision(rect1, rect2): bool
+        + {static} check_obstacle_collision(rect, obstacles): bool
+        + {static} check_sprite_collision(sprite1, sprite2): bool
+        + {static} check_sprite_group_collision(sprite, group): list
+    }
+}
+
+package "场景层 (scenes)" {
+    abstract class SceneBase {
+        # screen: Surface
+        # is_active: bool
+        # next_scene: str
+        # sound_system: SoundSystem
+        + handle_events(events): void
+        + update(): void
+        + draw(): void
+        + on_enter(): void
+        + on_exit(): void
+    }
+
+    class VillageScene {
+        - player: Player
+        - npcs: list
+        - obstacles: list
+        - dialog_system: DialogSystem
+        - player_stats: PlayerStats
+        - scroll_x: int
+        - scroll_y: int
+        + on_enter(): void
+        + handle_events(events): void
+        + update(): void
+        + draw(): void
+        - _update_camera(): void
+        - _check_npc_collision(): NPCBase
+        - _show_bonus_notification(text): void
+    }
+
+    class TempleScene {
+        - player: Player
+        - cattle: Cattle
+        - obstacles: list
+        - walkable_areas: list
+        - player_stats: PlayerStats
+        + on_enter(): void
+        + handle_events(events): void
+        + update(): void
+        + draw(): void
+    }
+
+    class BattleScene {
+        - player: BattlePlayer
+        - enemies: list
+        - current_wave: int
+        - total_waves: int
+        - wave_delay: int
+        - between_waves: bool
+        - battle_over: bool
+        - battle_won: bool
+        - player_stats: PlayerStats
+        + on_enter(): void
+        + handle_events(events): void
+        + update(): void
+        + draw(): void
+        - _spawn_wave(): void
+        - _check_attack_hit(): void
+        - _draw_hud(): void
+        - _draw_enemy_hp_bar(enemy): void
+    }
+
+    class SettlementScene {
+        - player_stats: PlayerStats
+        + on_enter(): void
+        + handle_events(events): void
+        + update(): void
+        + draw(): void
+    }
+}
+
+package "工具层 (utils)" {
+    class TiledScene {
+        - tmx_data: pytmx.TiledMap
+        - map_width: int
+        - map_height: int
+        + __init__(tmx_path): void
+        + render_map(surface, scroll_x, scroll_y): void
+        + get_object_by_name(name): list
+        + get_objects_by_name_prefix(prefix): list
+        + get_objects_by_layer(layer_name): list
+        + get_layer_by_name(name): object
+    }
+
+    class FadeScene {
+        - back_image: Surface
+        - alpha: int
+        - status: SceneStatus
+        - alpha_step: int
+        + update(): void
+        + get_out(): bool
+        + get_back_image(x, y): Surface
+    }
+
+    enum SceneStatus {
+        In
+        Normal
+        Out
+        Over
+    }
+}
+
+' 关系定义
+Game "1" *-- "1" SceneManager : has
+Game "1" *-- "1" SoundSystem : has
+Game "1" *-- "1" PlayerStats : has
+
+SceneManager "1" *-- "1" FadeScene : uses
+SceneManager "1" o-- "*" SceneBase : manages
+
+SceneBase <|-- VillageScene
+SceneBase <|-- TempleScene
+SceneBase <|-- BattleScene
+SceneBase <|-- SettlementScene
+
+VillageScene "1" *-- "1" Player : has
+VillageScene "1" *-- "1" DialogSystem : has
+VillageScene "1" *-- "1" PlayerStats : uses
+VillageScene "1" o-- "*" NPCBase : has
+
+TempleScene "1" *-- "1" Player : has
+TempleScene "1" *-- "1" Cattle : has
+TempleScene "1" *-- "1" PlayerStats : uses
+
+BattleScene "1" *-- "1" BattlePlayer : has
+BattleScene "1" o-- "*" Cattle : has
+BattleScene "1" *-- "1" PlayerStats : uses
+
+SettlementScene "1" *-- "1" PlayerStats : uses
+
+ActorBase <|-- Player
+ActorBase <|-- BattlePlayer
+ActorBase <|-- NPCBase
+ActorBase <|-- EnemyBase
+
+NPCBase <|-- Elder
+NPCBase <|-- Tang
+NPCBase <|-- God
+
+EnemyBase <|-- Cattle
+
+Player "1" *-- "4" Action : has (4 directions)
+BattlePlayer "1" *-- "12" Action : has (4 dirs x 3 states)
+Elder "1" *-- "1" Action : has
+God "1" *-- "4" Action : has (4 directions)
+Cattle "1" *-- "8" Action : has (8 states)
+
+PlayerStats <.. VillageScene : updates
+PlayerStats <.. BattleScene : reads/writes
+SoundSystem <.. SceneBase : plays music
+
+@enduml

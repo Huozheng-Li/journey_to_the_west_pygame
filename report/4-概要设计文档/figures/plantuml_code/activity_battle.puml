@@ -1,0 +1,129 @@
+@startuml 战斗系统活动图
+
+skinparam activityFontSize 13
+skinparam defaultFontSize 11
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+skinparam arrowColor #555555
+skinparam swimlaneBackgroundColor #F5F5F5
+
+title 战斗系统活动图
+
+|玩家|
+start
+:进入战斗场景;
+
+|BattleScene|
+:加载test.tmx地图;
+:读取出生点坐标;
+:从PlayerStats读取属性;
+:创建BattlePlayer(hp, atk);
+:设置has_been_to_battle = True;
+:current_wave = 0;
+:_spawn_wave();
+
+|敌人|
+:创建Cattle(spawn_point);
+
+|战斗循环|
+repeat
+
+    |玩家|
+    :WASD移动输入;
+
+    |BattleScene|
+    :处理玩家移动;
+
+    if (鼠标左键点击?) then (是)
+        |玩家|
+        :发起攻击;
+
+        |BattlePlayer|
+        :start_attack();
+        :is_attacking = True;
+        :播放攻击动画(20帧);
+
+        |BattleScene|
+        :获取攻击范围rect;
+        :获取敌人rect;
+        :检查碰撞;
+
+        if (攻击命中?) then (是)
+            |Cattle|
+            :take_damage(attack_power);
+            :hp -= attack_power;
+            :trigger_hit_effect();
+
+            if (敌人HP <= 0?) then (是)
+                |BattleScene|
+                :enemies_defeated++;
+                :current_wave++;
+                :between_waves = True;
+                :wave_timer = 90;
+            endif
+        endif
+    endif
+
+    |Cattle|
+    :chase_and_attack(player_x, player_y);
+
+    if (距离 < 攻击范围?) then (是)
+        if (冷却结束?) then (是)
+            :开始攻击;
+            :set_state('fight');
+        endif
+    elseif (距离 < 仇恨范围?) then (是)
+        :set_state('run');
+        :向玩家移动;
+    else
+        :set_state('station');
+    endif
+
+    :update动画;
+
+    if (攻击动画结束?) then (是)
+        :返回attack_power;
+        :is_attacking = False;
+
+        |BattleScene|
+        :player.take_damage(damage);
+    endif
+
+    if (玩家HP <= 0?) then (是)
+        |BattleScene|
+        :battle_over = True;
+        :battle_won = False;
+    endif
+
+    |BattleScene|
+    if (between_waves?) then (是)
+        :wave_timer -= 1;
+        if (wave_timer = 0?) then (是)
+            :between_waves = False;
+            if (current_wave < total_waves?) then (是)
+                |Cattle|
+                :创建新敌人;
+            else
+                :battle_won = True;
+                :battle_over = True;
+            endif
+        endif
+    endif
+
+repeat while (battle_over = False)
+
+|战斗结算|
+:等待60帧显示结果;
+:将结果写入PlayerStats;
+:next_scene = 'settlement';
+
+|SettlementScene|
+:显示战斗结果;
+:显示属性信息;
+
+|玩家|
+:按空格返回村庄;
+
+stop
+
+@enduml

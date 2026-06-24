@@ -1,0 +1,87 @@
+@startuml 西游记观音院-用例图
+
+skinparam actorFontSize 14
+skinparam usecaseFontSize 13
+skinparam defaultFontSize 12
+skinparam arrowFontSize 12
+skinparam packageFontSize 14
+skinparam usecaseBackgroundColor #FEFECE
+skinparam usecaseBorderColor #A80036
+skinparam actorBackgroundColor #E8F5E9
+skinparam actorBorderColor #4CAF50
+skinparam arrowColor #555555
+skinparam packageBackgroundColor #F5F5F5
+skinparam packageBorderColor #CCCCCC
+
+title 西游记观音院 - 用例图
+
+left to right direction
+
+actor "玩家" as Player
+
+rectangle "西游记观音院 游戏系统" {
+
+    package "探索系统" {
+        usecase "WASD移动" as UC_Move
+        usecase "与NPC对话" as UC_Dialog
+        usecase "触发场景切换" as UC_Switch
+        usecase "查看属性加成" as UC_Bonus
+    }
+
+    package "战斗系统" {
+        usecase "WASD移动(战斗)" as UC_BattleMove
+        usecase "鼠标点击攻击" as UC_Attack
+        usecase "击败敌人" as UC_Defeat
+        usecase "波次战斗" as UC_Wave
+    }
+
+    package "属性系统" {
+        usecase "与村民交互\nHP+20" as UC_Elder
+        usecase "与唐僧交互\nATK+10" as UC_Tang
+        usecase "查看结算信息" as UC_Settlement
+    }
+
+    package "音效系统" {
+        usecase "背景音乐播放" as UC_Music
+        usecase "渐弱切歌" as UC_FadeMusic
+    }
+
+    package "对话系统" {
+        usecase "正常对话" as UC_NormalDialog
+        usecase "鼓励对话\n(失败后)" as UC_EncourageDialog
+    }
+}
+
+' 玩家与探索系统
+Player --> UC_Move
+Player --> UC_Dialog
+Player --> UC_Switch
+Player --> UC_Bonus
+
+' 玩家与战斗系统
+Player --> UC_BattleMove
+Player --> UC_Attack
+Player --> UC_Defeat
+Player --> UC_Wave
+
+' 玩家与属性系统
+Player --> UC_Elder
+Player --> UC_Tang
+Player --> UC_Settlement
+
+' 玩家与音效系统
+Player --> UC_Music
+Player --> UC_FadeMusic
+
+' 玩家与对话系统
+Player --> UC_NormalDialog
+Player --> UC_EncourageDialog
+
+' 用例关系
+UC_Elder ..> UC_Bonus : <<include>>
+UC_Tang ..> UC_Bonus : <<include>>
+UC_Defeat ..> UC_Wave : <<include>>
+UC_Switch ..> UC_FadeMusic : <<include>>
+UC_EncourageDialog ..> UC_NormalDialog : <<extend>>
+
+@enduml

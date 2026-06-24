@@ -1,0 +1,72 @@
+@startuml 实时战斗流程-活动图
+
+skinparam activityFontSize 14
+skinparam defaultFontSize 12
+skinparam arrowFontSize 12
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+skinparam activityDiamondBackgroundColor #E8F5E9
+skinparam activityDiamondBorderColor #4CAF50
+skinparam arrowColor #555555
+
+title 实时战斗流程 - 活动图
+
+|玩家|
+start
+:进入战斗场景;
+:加载战斗地图(test.tmx);
+:读取玩家属性(HP/ATK);
+:初始化玩家和敌人;
+
+|系统|
+:current_wave = 0;
+:生成第1波敌人;
+
+|玩家|
+repeat
+    :WASD移动;
+    if (鼠标左键点击?) then (是)
+        :发起挥砍攻击;
+        :检查攻击碰撞;
+        if (命中敌人?) then (是)
+            :敌人HP -= 玩家ATK;
+            :敌人触发受击效果;
+            if (敌人HP <= 0?) then (是)
+                :enemies_defeated++;
+                :current_wave++;
+                if (current_wave < 3?) then (是)
+                    :显示"下一波即将到来";
+                    :等待90帧;
+                    :生成新一波敌人;
+                else (否)
+                    :战斗胜利;
+                endif
+            endif
+        endif
+    endif
+
+    :敌人AI追击;
+    if (敌人在攻击范围内?) then (是)
+        :敌人播放攻击动画;
+        :动画结束时造成伤害;
+        :玩家HP -= 敌人ATK;
+        :玩家触发受击效果;
+    endif
+
+    if (玩家HP <= 0?) then (是)
+        :战斗失败;
+    endif
+
+repeat while (战斗未结束)
+
+|系统|
+:更新PlayerStats;
+:next_scene = 'settlement';
+
+|玩家|
+:显示结算画面;
+:按空格返回村庄;
+
+stop
+
+@enduml

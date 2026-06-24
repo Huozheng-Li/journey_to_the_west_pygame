@@ -1,0 +1,97 @@
+@startuml 碰撞检测算法
+
+skinparam activityFontSize 13
+skinparam defaultFontSize 11
+skinparam activityBackgroundColor #FEFECE
+skinparam activityBorderColor #A80036
+skinparam arrowColor #555555
+
+title 碰撞检测算法流程
+
+|玩家移动碰撞检测|
+start
+:获取玩家foot_rect;
+note right
+    foot_rect = {
+        x: pos_x + width*0.25,
+        y: pos_y + height*0.65,
+        width: width*0.5,
+        height: height*0.35
+    }
+end note
+
+:计算新位置 new_x, new_y;
+:创建 test_rect(new_x, new_y);
+
+if (与障碍物碰撞?) then (是)
+    :拒绝移动;
+    :保持原位置;
+else (否)
+    if (在可行走区域内?) then (是)
+        :允许移动;
+        :更新位置;
+    else (否)
+        :拒绝移动;
+        :保持原位置;
+    endif
+endif
+
+stop
+
+|攻击碰撞检测|
+start
+:获取玩家attack_rect;
+note right
+    attack_rect 取决于方向:
+    DOWN/UP: 80x60 矩形
+    LEFT/RIGHT: 60x40 矩形
+    从玩家中心向前延伸
+end note
+
+:获取敌人rect;
+
+:检查 attack_rect.colliderect(enemy_rect);
+
+if (碰撞?) then (是)
+    :造成伤害 damage = attack_power;
+    :敌人.take_damage(damage);
+    :触发受击效果;
+else (否)
+    :无伤害;
+endif
+
+stop
+
+|敌人攻击检测|
+start
+:敌人.try_deal_damage();
+
+if (攻击动画结束?) then (是)
+    :返回 attack_power;
+    :玩家.take_damage(damage);
+    :触发受击效果;
+    :重置攻击状态;
+else (否)
+    :返回 0;
+endif
+
+stop
+
+|NPC交互检测|
+start
+:获取玩家碰撞框;
+:获取NPC碰撞框;
+:扩大NPC碰撞框 inflate(20,20);
+
+if (玩家框 与 NPC框 碰撞?) then (是)
+    :显示交互提示;
+    if (按空格键?) then (是)
+        :开始对话;
+    endif
+else (否)
+    :隐藏提示;
+endif
+
+stop
+
+@enduml

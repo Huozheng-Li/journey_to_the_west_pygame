@@ -1,0 +1,136 @@
+@startuml 场景切换时序图
+
+skinparam sequenceFontSize 13
+skinparam defaultFontSize 11
+skinparam arrowFontSize 11
+skinparam sequenceLifeLineBorderColor #A80036
+skinparam sequenceParticipantBackgroundColor #FEFECE
+skinparam sequenceParticipantBorderColor #A80036
+skinparam sequenceArrowColor #555555
+
+title 场景切换时序图
+
+participant "Game" as G
+participant "SceneManager" as SM
+participant "FadeScene" as FS
+participant "SceneBase\n(旧场景)" as Old
+participant "SceneBase\n(新场景)" as New
+participant "SoundSystem" as SS
+
+== 正常场景切换流程 ==
+
+G -> SM : set_current_scene('temple', use_fade=True)
+activate SM
+
+SM -> Old : get screen snapshot
+Old --> SM : screenshot
+
+SM -> FS : FadeScene(screenshot)
+activate FS
+SM -> SM : is_transitioning = True
+
+note right of SM : 开始淡出
+
+loop 淡出动画 (alpha: 255->0)
+    SM -> FS : update()
+    activate FS
+    FS -> FS : alpha -= 20
+    FS --> SM : status = Out
+    deactivate FS
+    SM -> SM : draw() - overlay fade
+end
+
+FS -> SM : get_out() = True
+
+SM -> Old : on_exit()
+activate Old
+Old --> SM : 退出完成
+deactivate Old
+
+SM -> New : on_enter()
+activate New
+New -> SS : play_music('bgm')
+activate SS
+SS --> New : 音乐开始
+deactivate SS
+New --> SM : 进入完成
+deactivate New
+
+SM -> SM : current_scene = New
+
+note right of SM : 开始淡入
+
+SM -> FS : set_status(SceneStatus.In)
+
+loop 淡入动画 (alpha: 0->255)
+    SM -> FS : update()
+    activate FS
+    FS -> FS : alpha += 20
+    FS --> SM : status = In
+    deactivate FS
+    SM -> SM : draw() - overlay fade
+end
+
+FS -> SM : get_back_image() - status = Normal
+SM -> SM : is_transitioning = False
+
+deactivate FS
+deactivate SM
+
+== 战斗场景切换流程 ==
+
+G -> SM : set_current_scene('battle', use_fade=True)
+activate SM
+
+SM -> FS : FadeScene(screenshot)
+activate FS
+
+loop 淡出动画
+    SM -> FS : update()
+end
+
+SM -> Old : on_exit()
+
+SM -> New : on_enter()
+activate New
+New -> New : 加载test.tmx地图
+New -> New : 创建BattlePlayer
+New -> New : 读取player_stats属性
+New -> SS : play_music('fight')
+New -> New : _spawn_wave() 生成第一波敌人
+
+deactivate New
+
+SM -> FS : set_status(SceneStatus.In)
+
+loop 淡入动画
+    SM -> FS : update()
+end
+
+SM -> SM : is_transitioning = False
+
+deactivate FS
+deactivate SM
+
+== 音乐渐弱切换 ==
+
+note over SS : 场景切换时触发
+
+New -> SS : play_music('fight', force_restart=True)
+activate SS
+
+SS -> SS : fade_timer = 30
+SS -> SS : fade_callback = lambda: _load_and_play('fight')
+
+loop 音乐渐弱 (30帧)
+    SS -> SS : update()
+    SS -> SS : volume = fade_timer/30
+end
+
+SS -> SS : _load_and_play('fight')
+SS -> SS : pygame.mixer.music.load('fight.mp3')
+SS -> SS : pygame.mixer.music.play(-1)
+
+deactivate SS
+
+@enduml

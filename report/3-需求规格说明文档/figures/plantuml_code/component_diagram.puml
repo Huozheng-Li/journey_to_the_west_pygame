@@ -1,0 +1,97 @@
+@startuml 西游记观音院-组件图
+
+skinparam componentFontSize 14
+skinparam defaultFontSize 12
+skinparam arrowFontSize 12
+skinparam packageFontSize 14
+skinparam componentBackgroundColor #FEFECE
+skinparam componentBorderColor #A80036
+skinparam packageBackgroundColor #E8F5E9
+skinparam packageBorderColor #4CAF50
+skinparam arrowColor #555555
+
+title 西游记观音院 - 组件图
+
+package "核心层 (core)" {
+    component [main.py\n游戏入口] as Main
+    component [scene_manager.py\n场景管理器] as SM
+    component [camera.py\n相机系统] as Camera
+}
+
+package "角色层 (actors)" {
+    component [base_actor.py\n角色基类] as BaseActor
+    component [player.py\n探索玩家] as Player
+    component [battle_player.py\n战斗玩家] as BattlePlayer
+    component [npc.py\nNPC基类] as NPCBase
+    component [elder.py\n村民] as Elder
+    component [god.py\n土地公] as God
+    component [tang.py\n唐僧] as Tang
+    component [enemy.py\n怪物基类+牛怪] as Enemy
+}
+
+package "系统层 (systems)" {
+    component [dialog.py\n对话系统] as Dialog
+    component [player_stats.py\n属性系统] as Stats
+    component [sound.py\n音效系统] as Sound
+    component [collision.py\n碰撞系统] as Collision
+}
+
+package "场景层 (scenes)" {
+    component [village.py\n村庄场景] as Village
+    component [temple.py\n寺庙场景] as Temple
+    component [battle_scene.py\n战斗场景] as Battle
+    component [settlement_scene.py\n结算画面] as Settlement
+    component [end_scene.py\n结束场景] as End
+}
+
+package "工具层 (utils)" {
+    component [tiled_render.py\nTMX渲染器] as Tiled
+    component [fade_scene.py\n渐变效果] as Fade
+}
+
+' 核心层关系
+Main --> SM : 管理场景
+Main --> Sound : 初始化音效
+Main --> Stats : 创建属性
+
+' 场景管理层关系
+SM --> Village : 加载
+SM --> Temple : 加载
+SM --> Battle : 加载
+SM --> Settlement : 加载
+SM --> End : 加载
+SM --> Fade : 渐变切换
+
+' 场景与角色关系
+Village --> Player : 创建
+Village --> NPCBase : 加载NPC
+Village --> Dialog : 对话
+Village --> Stats : 属性加成
+Village --> Tiled : 地图
+
+Temple --> Player : 创建
+Temple --> Enemy : 怪物
+Temple --> Tiled : 地图
+
+Battle --> BattlePlayer : 创建
+Battle --> Enemy : 敌人
+Battle --> Stats : 读取属性
+Battle --> Tiled : 地图
+
+Settlement --> Stats : 显示信息
+
+' 角色层关系
+BaseActor <|-- Player
+BaseActor <|-- BattlePlayer
+BaseActor <|-- NPCBase
+BaseActor <|-- Enemy
+NPCBase <|-- Elder
+NPCBase <|-- God
+NPCBase <|-- Tang
+
+' 系统层关系
+Dialog ..> Player : 交互
+Sound ..> Fade : 渐弱切歌
+Stats ..> Battle : 传递属性
+
+@enduml
