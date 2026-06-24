@@ -27,6 +27,7 @@ class BattlePlayer(ActorBase):
         self.animations = {}
         self.current_state = 'station'
         self._load_animations()
+        self.sync_rect_to_image()
 
     def _load_animations(self):
         """加载战斗动画 - 16帧: 方向0(00000-00003), 方向1(01000-01003), 方向2(02000-02003), 方向3(03000-03003)"""

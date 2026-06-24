@@ -22,6 +22,7 @@ class God(NPCBase):
         super().__init__(x, y, 48, 68, speed=2)
         self.animations = {}
         self._load_animations()
+        self.sync_rect_to_image()
         self._load_dialogs()
 
     def _load_animations(self):

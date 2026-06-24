@@ -36,16 +36,48 @@ class ActorBase(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (int(x), int(y))
 
+    def sync_rect_to_image(self):
+        """同步碰撞矩形大小到当前图像尺寸（在加载动画后调用）"""
+        if self.image:
+            self.width = self.image.get_width()
+            self.height = self.image.get_height()
+            self.rect.size = (self.width, self.height)
+
     def update_rect(self):
         """更新碰撞矩形位置"""
         self.rect.topleft = (int(self.pos_x), int(self.pos_y))
 
-    def draw(self, surface):
+    def draw(self, surface, offset_x=0, offset_y=0):
         """
         绘制角色到surface
         :param surface: 目标surface
+        :param offset_x: 摄像机X偏移
+        :param offset_y: 摄像机Y偏移
         """
-        surface.blit(self.image, self.rect)
+        screen_x = self.pos_x - offset_x
+        screen_y = self.pos_y - offset_y
+        surface.blit(self.image, (screen_x, screen_y))
+
+    def debug_draw(self, surface, offset_x=0, offset_y=0):
+        """
+        调试绘制：先画角色，再画红色框=素材边界，蓝色框=碰撞体积
+        """
+        screen_x = self.pos_x - offset_x
+        screen_y = self.pos_y - offset_y
+        # 先绘制角色本身
+        surface.blit(self.image, (screen_x, screen_y))
+        # 红色框 - 素材边界（完整图片大小）
+        img_w = self.image.get_width()
+        img_h = self.image.get_height()
+        img_rect = pygame.Rect(screen_x, screen_y, img_w, img_h)
+        pygame.draw.rect(surface, (255, 0, 0), img_rect, 2)
+        # 蓝色框 - 碰撞体积（缩小放在脚部区域）
+        col_w = int(img_w * 0.5)
+        col_h = int(img_h * 0.35)
+        col_x = screen_x + (img_w - col_w) // 2
+        col_y = screen_y + img_h - col_h - 2
+        col_rect = pygame.Rect(col_x, col_y, col_w, col_h)
+        pygame.draw.rect(surface, (0, 100, 255), col_rect, 2)
 
     def get_position(self):
         """

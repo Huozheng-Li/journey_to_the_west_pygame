@@ -25,6 +25,7 @@ class Elder(NPCBase):
         super().__init__(x, y, 48, 68, speed=1)
         self.animations = {}
         self._load_animations(frame_counts.get(elder_type, 10))
+        self.sync_rect_to_image()
         self._load_dialogs()
 
     def _load_animations(self, frame_count):

@@ -69,12 +69,12 @@ class BattleScene(SceneBase):
         self.screen.fill((50, 50, 80))
 
         if self.player:
-            self.screen.blit(self.player.image, (self.player.pos_x, self.player.pos_y))
+            self.player.debug_draw(self.screen, 0, 0)
             self._draw_hp_bar(self.player.pos_x, self.player.pos_y - 30,
                              self.player.hp, self.player.max_hp, "孙悟空")
 
         if self.enemy:
-            self.screen.blit(self.enemy.image, (self.enemy.pos_x, self.enemy.pos_y))
+            self.enemy.debug_draw(self.screen, 0, 0)
             self._draw_hp_bar(self.enemy.pos_x, self.enemy.pos_y - 30,
                              self.enemy.hp, self.enemy.max_hp, "牛怪")
 

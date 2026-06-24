@@ -95,7 +95,7 @@ class VillageScene(SceneBase):
                         self._check_npc_collision()
 
     def _check_npc_collision(self):
-        player_rect = self.player.get_rect()
+        player_rect = self.player.get_col_rect()
         for npc in self.npcs:
             npc_rect = npc.get_rect().inflate(20, 20)
             if player_rect.colliderect(npc_rect):
@@ -119,7 +119,7 @@ class VillageScene(SceneBase):
         self._update_camera()
 
     def _update_nearby_npc(self):
-        player_rect = self.player.get_rect()
+        player_rect = self.player.get_col_rect()
         self.nearby_npc = None
         for npc in self.npcs:
             npc_rect = npc.get_rect().inflate(20, 20)
@@ -151,15 +151,13 @@ class VillageScene(SceneBase):
         self.tiled_scene.render_map(self.screen, self.scroll_x, self.scroll_y)
 
         for npc in self.npcs:
-            screen_x = npc.pos_x - self.scroll_x
-            screen_y = npc.pos_y - self.scroll_y
-            self.screen.blit(npc.image, (screen_x, screen_y))
+            npc.debug_draw(self.screen, self.scroll_x, self.scroll_y)
 
-        screen_x = self.player.pos_x - self.scroll_x
-        screen_y = self.player.pos_y - self.scroll_y
-        self.screen.blit(self.player.image, (screen_x, screen_y))
+        self.player.debug_draw(self.screen, self.scroll_x, self.scroll_y)
 
         if self.nearby_npc and not self.dialog_system.is_dialog_active:
+            screen_x = self.player.pos_x - self.scroll_x
+            screen_y = self.player.pos_y - self.scroll_y
             self._draw_hint("按空格键发起对话", screen_x, screen_y)
 
         self.dialog_system.draw(self.screen)

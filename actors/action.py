@@ -31,19 +31,31 @@ class Action:
         self._frame_delay = frame_delay
 
         full_path = os.path.join(IMG_DIR, path)
+        raw_images = []
         for i in range(image_count):
             frame_num = start_index + i
             img_path = os.path.join(full_path, f"{prefix}{frame_num:05d}.png")
             try:
                 image = pygame.image.load(img_path).convert_alpha()
-                self.action_images.append(image)
+                raw_images.append(image)
             except FileNotFoundError:
                 try:
                     img_path = os.path.join(full_path, f"{prefix}{frame_num:05d}.tga")
                     image = pygame.image.load(img_path).convert_alpha()
-                    self.action_images.append(image)
+                    raw_images.append(image)
                 except FileNotFoundError:
                     print(f"无法加载图片: {prefix}{frame_num:05d}")
+
+        # Normalize all frames to uniform canvas size (fixes position jitter / spinning)
+        if raw_images:
+            max_w = max(img.get_width() for img in raw_images)
+            max_h = max(img.get_height() for img in raw_images)
+            for img in raw_images:
+                canvas = pygame.Surface((max_w, max_h), pygame.SRCALPHA)
+                cx = (max_w - img.get_width()) // 2
+                cy = (max_h - img.get_height()) // 2
+                canvas.blit(img, (cx, cy))
+                self.action_images.append(canvas)
 
     def get_current_image(self):
         """

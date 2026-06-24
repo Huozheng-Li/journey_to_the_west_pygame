@@ -92,7 +92,7 @@ class TempleScene(SceneBase):
         self._update_nearby_monster()
 
     def _update_nearby_monster(self):
-        player_rect = self.player.get_rect()
+        player_rect = self.player.get_col_rect()
         monster_rect = self.monster.get_rect().inflate(40, 40)
         self.nearby_monster = player_rect.colliderect(monster_rect)
 
@@ -109,15 +109,13 @@ class TempleScene(SceneBase):
         if self.tiled_scene:
             self.tiled_scene.render_map(self.screen, self.scroll_x, self.scroll_y)
 
-        monster_screen_x = self.monster.pos_x - self.scroll_x
-        monster_screen_y = self.monster.pos_y - self.scroll_y
-        self.screen.blit(self.monster.image, (monster_screen_x, monster_screen_y))
+        self.monster.debug_draw(self.screen, self.scroll_x, self.scroll_y)
 
-        screen_x = self.player.pos_x - self.scroll_x
-        screen_y = self.player.pos_y - self.scroll_y
-        self.screen.blit(self.player.image, (screen_x, screen_y))
+        self.player.debug_draw(self.screen, self.scroll_x, self.scroll_y)
 
         if self.nearby_monster:
+            screen_x = self.player.pos_x - self.scroll_x
+            screen_y = self.player.pos_y - self.scroll_y
             self._draw_hint("按空格键发起战斗", screen_x, screen_y)
 
     def _draw_hint(self, text, player_x, player_y):

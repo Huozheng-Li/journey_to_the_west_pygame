@@ -70,6 +70,7 @@ class Cattle(EnemyBase):
         """
         super().__init__(x, y, 64, 64, hp=50, attack_power=10)
         self._load_animations()
+        self.sync_rect_to_image()
 
     def _load_animations(self):
         """加载牛怪动画"""
