@@ -20,8 +20,9 @@ class VillageScene(SceneBase):
     加载village1.tmx地图和角色
     """
 
-    def __init__(self, screen):
+    def __init__(self, screen, player_stats=None):
         super().__init__(screen)
+        self.player_stats = player_stats
         self.tiled_scene = TiledScene(f"{TMX_DIR}/village1.tmx")
         self.scroll_x = 0
         self.scroll_y = 0
@@ -53,7 +54,9 @@ class VillageScene(SceneBase):
         npcs = []
         god_objects = self.tiled_scene.get_object_by_name('god')
         for obj in god_objects:
-            npcs.append(God(obj.x, obj.y))
+            god = God(obj.x, obj.y)
+            god.player_stats = self.player_stats
+            npcs.append(god)
         elder_objects = self.tiled_scene.get_objects_by_name_prefix('elder')
         for i, obj in enumerate(elder_objects):
             elder_type = (i % 4) + 1
@@ -85,7 +88,16 @@ class VillageScene(SceneBase):
                             if not self.current_npc.next_dialog():
                                 self.dialog_system.end_dialog()
                                 self.player.is_talking = False
-                                if isinstance(self.current_npc, God):
+                                # NPC交互属性加成
+                                if isinstance(self.current_npc, Elder):
+                                    if self.player_stats and self.player_stats.add_elder_hp():
+                                        self._show_bonus_notification(f"HP +{self.player_stats.ELDER_HP_BONUS}!")
+                                    self.current_npc.reset_dialog()
+                                elif isinstance(self.current_npc, Tang):
+                                    if self.player_stats and self.player_stats.add_tang_attack():
+                                        self._show_bonus_notification(f"ATK +{self.player_stats.TANG_ATTACK_BONUS}!")
+                                    self.current_npc.reset_dialog()
+                                elif isinstance(self.current_npc, God):
                                     self.current_npc.reset_dialog()
                                     self.next_scene = 'temple'
                                 self.current_npc = None
@@ -146,6 +158,23 @@ class VillageScene(SceneBase):
         self.screen.blit(bg_surface, (bg_x, bg_y))
         self.screen.blit(hint_surface, (bg_x + 5, bg_y + 3))
 
+    def _show_bonus_notification(self, text):
+        """显示属性加成通知"""
+        self._notification_text = text
+        self._notification_timer = 120  # 显示3秒 (40FPS)
+
+    def _draw_notification(self):
+        """绘制属性加成通知"""
+        if hasattr(self, '_notification_timer') and self._notification_timer > 0:
+            self._notification_timer -= 1
+            font = pygame.font.Font(os.path.join(FONT_DIR, 'newfont.TTF'), 28)
+            surface = font.render(self._notification_text, True, (255, 255, 0))
+            rect = surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 100))
+            bg = pygame.Surface(rect.inflate(20, 10).size, pygame.SRCALPHA)
+            bg.fill((0, 0, 0, 180))
+            self.screen.blit(bg, rect.inflate(20, 10).topleft)
+            self.screen.blit(surface, rect)
+
     def draw(self):
         self.screen.fill((0, 0, 0))
         self.tiled_scene.render_map(self.screen, self.scroll_x, self.scroll_y)
@@ -161,3 +190,4 @@ class VillageScene(SceneBase):
             self._draw_hint("按空格键发起对话", screen_x, screen_y)
 
         self.dialog_system.draw(self.screen)
+        self._draw_notification()

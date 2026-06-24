@@ -35,6 +35,10 @@ class ActorBase(pygame.sprite.Sprite):
         self.image = pygame.Surface((width, height), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
         self.rect.topleft = (int(x), int(y))
+        # 受击效果
+        self.hit_timer = 0
+        self.hit_duration = 10  # 受击闪烁持续帧数
+        self.original_image = None
 
     def sync_rect_to_image(self):
         """同步碰撞矩形大小到当前图像尺寸（在加载动画后调用）"""
@@ -42,6 +46,43 @@ class ActorBase(pygame.sprite.Sprite):
             self.width = self.image.get_width()
             self.height = self.image.get_height()
             self.rect.size = (self.width, self.height)
+            self.original_image = self.image.copy()
+
+    def trigger_hit_effect(self):
+        """触发受击效果"""
+        self.hit_timer = self.hit_duration
+
+    def _apply_hit_effect(self):
+        """
+        应用受击变色效果 (降低绿色和蓝色通道，使图片偏红)
+        :return: 变色后的图片
+        """
+        if self.hit_timer <= 0 or self.original_image is None:
+            return self.image
+
+        # 每隔2帧闪烁一次
+        if self.hit_timer % 4 < 2:
+            # 创建变色后的图片
+            hit_image = self.original_image.copy()
+            # 使用 surfarray 操作像素
+            try:
+                pixels = pygame.surfarray.pixels3d(hit_image)
+                # 降低绿色通道 (乘以0.5)
+                pixels[:, :, 1] = (pixels[:, :, 1] * 0.5).astype(int)
+                # 降低蓝色通道 (乘以0.5)
+                pixels[:, :, 2] = (pixels[:, :, 2] * 0.5).astype(int)
+                del pixels
+            except Exception:
+                # 如果像素操作失败，使用简单的白色闪烁
+                hit_image.fill((255, 100, 100, 128), special_flags=pygame.BLEND_RGBA_MULT)
+            return hit_image
+        else:
+            return self.original_image
+
+    def update_hit_effect(self):
+        """更新受击效果计时器"""
+        if self.hit_timer > 0:
+            self.hit_timer -= 1
 
     def update_rect(self):
         """更新碰撞矩形位置"""
@@ -56,7 +97,9 @@ class ActorBase(pygame.sprite.Sprite):
         """
         screen_x = self.pos_x - offset_x
         screen_y = self.pos_y - offset_y
-        surface.blit(self.image, (screen_x, screen_y))
+        # 应用受击效果
+        draw_image = self._apply_hit_effect()
+        surface.blit(draw_image, (screen_x, screen_y))
 
     def debug_draw(self, surface, offset_x=0, offset_y=0):
         """
@@ -64,8 +107,10 @@ class ActorBase(pygame.sprite.Sprite):
         """
         screen_x = self.pos_x - offset_x
         screen_y = self.pos_y - offset_y
+        # 应用受击效果
+        draw_image = self._apply_hit_effect()
         # 先绘制角色本身
-        surface.blit(self.image, (screen_x, screen_y))
+        surface.blit(draw_image, (screen_x, screen_y))
         # 红色框 - 素材边界（完整图片大小）
         img_w = self.image.get_width()
         img_h = self.image.get_height()

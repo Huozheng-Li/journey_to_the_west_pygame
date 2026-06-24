@@ -17,8 +17,9 @@ class TempleScene(SceneBase):
     加载temple.tmx地图，触发战斗
     """
 
-    def __init__(self, screen):
+    def __init__(self, screen, player_stats=None):
         super().__init__(screen)
+        self.player_stats = player_stats
         try:
             self.tiled_scene = TiledScene(f"{TMX_DIR}/temple.tmx")
         except (FileNotFoundError, pygame.error):

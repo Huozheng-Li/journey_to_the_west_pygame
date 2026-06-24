@@ -10,7 +10,9 @@ from scenes.village import VillageScene
 from scenes.temple import TempleScene
 from scenes.battle_scene import BattleScene
 from scenes.end_scene import EndScene
+from scenes.settlement_scene import SettlementScene
 from systems.sound import SoundSystem
+from systems.player_stats import PlayerStats
 
 
 def main():
@@ -22,11 +24,13 @@ def main():
     clock = pygame.time.Clock()
 
     sound_system = SoundSystem()
+    player_stats = PlayerStats()
 
     scene_manager = SceneManager(screen, sound_system)
-    scene_manager.add_scene('village', VillageScene(screen))
-    scene_manager.add_scene('temple', TempleScene(screen))
-    scene_manager.add_scene('battle', BattleScene(screen))
+    scene_manager.add_scene('village', VillageScene(screen, player_stats))
+    scene_manager.add_scene('temple', TempleScene(screen, player_stats))
+    scene_manager.add_scene('battle', BattleScene(screen, player_stats))
+    scene_manager.add_scene('settlement', SettlementScene(screen, player_stats))
     scene_manager.add_scene('end_win', EndScene(screen, True))
     scene_manager.add_scene('end_lose', EndScene(screen, False))
     scene_manager.set_current_scene('village', use_fade=False)
