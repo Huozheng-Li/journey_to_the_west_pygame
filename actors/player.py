@@ -25,10 +25,10 @@ class Player(ActorBase):
     def _load_animations(self):
         """加载4方向动画 - 128帧: 下(1-32), 左(33-64), 上(65-96), 右(97-128)"""
         self.animations = {
-            self.DOWN: Action('swk2', 'China_SunWuKong_', 32, True, start_index=1),
-            self.LEFT: Action('swk2', 'China_SunWuKong_', 32, True, start_index=33),
-            self.UP: Action('swk2', 'China_SunWuKong_', 32, True, start_index=65),
-            self.RIGHT: Action('swk2', 'China_SunWuKong_', 32, True, start_index=97),
+            self.DOWN: Action('swk2', 'China_SunWuKong_', 32, True, start_index=1, frame_delay=1),
+            self.LEFT: Action('swk2', 'China_SunWuKong_', 32, True, start_index=33, frame_delay=1),
+            self.UP: Action('swk2', 'China_SunWuKong_', 32, True, start_index=65, frame_delay=1),
+            self.RIGHT: Action('swk2', 'China_SunWuKong_', 32, True, start_index=97, frame_delay=1),
         }
         if self.DOWN in self.animations:
             self.image = self.animations[self.DOWN].peek_current_image()
@@ -42,21 +42,28 @@ class Player(ActorBase):
         dx, dy = 0, 0
         current_speed = self.speed * 0.5 if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT] else self.speed
 
+        # 方向设置 (视觉) - elif保证只有一个方向
         if keys[pygame.K_s]:
             self.direction = self.DOWN
-            dy = current_speed
+        elif keys[pygame.K_w]:
+            self.direction = self.UP
+        elif keys[pygame.K_a]:
+            self.direction = self.LEFT
+        elif keys[pygame.K_d]:
+            self.direction = self.RIGHT
+
+        # 速度计算 (移动) - if独立累加支持斜向移动
+        if keys[pygame.K_s]:
+            dy += current_speed
             self.is_moving = True
         if keys[pygame.K_w]:
-            self.direction = self.UP
-            dy = -current_speed
+            dy -= current_speed
             self.is_moving = True
         if keys[pygame.K_a]:
-            self.direction = self.LEFT
-            dx = -current_speed
+            dx -= current_speed
             self.is_moving = True
         if keys[pygame.K_d]:
-            self.direction = self.RIGHT
-            dx = current_speed
+            dx += current_speed
             self.is_moving = True
 
         if dx != 0 and dy != 0:
@@ -101,6 +108,11 @@ class Player(ActorBase):
                 self.image = action.peek_current_image()
 
     def draw(self, surface):
-        """绘制玩家"""
+        """绘制玩家 - 居中显示避免跳动"""
         if self.image:
-            surface.blit(self.image, self.rect)
+            img_rect = self.image.get_rect()
+            # 以角色中心为基准居中绘制
+            center_x = self.rect.centerx
+            center_y = self.rect.centery
+            img_rect.center = (center_x, center_y)
+            surface.blit(self.image, img_rect)
