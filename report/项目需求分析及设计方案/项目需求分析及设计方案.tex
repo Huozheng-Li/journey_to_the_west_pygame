@@ -1,0 +1,563 @@
+\documentclass[12pt,a4paper]{article}
+
+% ===== 宏包 =====
+\usepackage[UTF8]{ctex}                  % 中文支持
+\usepackage{fontspec}                     % 字体设置
+\setmainfont{Times New Roman}             % 西文主字体
+\usepackage{geometry}                     % 页面边距
+\usepackage{booktabs}                     % 三线表
+\usepackage{tabularx}                     % 自适应表格
+\usepackage{enumitem}                     % 列表自定义
+\usepackage{hyperref}                     % 超链接
+\usepackage{xcolor}                       % 颜色
+\usepackage{fancyhdr}                     % 页眉页脚
+\usepackage{titlesec}                     % 标题格式
+\usepackage{graphicx}                     % 图片
+\usepackage{multirow}                     % 合并行
+\usepackage{array}                        % 表格增强
+\usepackage{float}                        % 浮动体位置控制 [H]
+\usepackage{listings}                     % 代码高亮
+\usepackage{algorithm}                    % 算法环境
+\usepackage{algorithmic}                  % 算法伪代码
+
+% ===== 页面设置 =====
+\geometry{left=2.5cm, right=2.5cm, top=2.8cm, bottom=2.5cm}
+
+% ===== 页眉页脚 =====
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\small 第 \thepage\ 页}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% ===== 标题格式 =====
+\titleformat{\section}{\Large\bfseries}{\thesection、}{0pt}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection\quad}{0pt}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection\quad}{0pt}{}
+
+% ===== 代码样式 =====
+\lstset{
+    basicstyle=\small\ttfamily,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+}
+
+% ===== 文档开始 =====
+\begin{document}
+
+% ===== 标题 =====
+\begin{center}
+    {\LARGE\bfseries 项目需求分析及设计方案}\\[1cm]
+\end{center}
+
+% ===== 基本信息 =====
+\noindent
+\textbf{【讨论主题】：}项目需求分析及设计方案-讨论记录\\[6pt]
+\textbf{【课程名称】：}软件项目开发与实践\\[6pt]
+\textbf{【讨论日期】：}2026年6月21日\\[6pt]
+\textbf{【讨论时长】：}120分钟\\[6pt]
+\textbf{【讨论方式】：}与 AI 工具对话讨论\\[6pt]
+\textbf{【参与人员】：}本人\\[12pt]
+
+\rule{\textwidth}{0.8pt}
+
+% ================================================================
+% 一、项目背景与目标
+% ================================================================
+\section{项目背景与目标}
+
+\subsection{项目背景}
+\textbf{【项目背景】：}\\[4pt]
+\indent 本项目为软件项目开发课程实训项目，以 Pygame 为开发框架，实现一款以西游记"祸起观音院"为故事背景的 2D RPG 游戏。玩家扮演孙悟空，需要在村庄中找到土地公获取线索，前往观音院与妖怪战斗，最终找回袈裟。
+
+在课程学习过程中，需要掌握 Pygame 游戏开发的基本流程，包括地图渲染、角色控制、碰撞检测、对话系统、战斗系统等模块的实现。同时，通过使用 AI 辅助开发工具，探索 AI 在软件工程中的实际应用价值。
+
+\subsection{项目目标}
+\textbf{【项目目标】：}
+\begin{enumerate}[label=\arabic*.]
+    \item \textbf{功能性目标}
+    \begin{itemize}
+        \item 实现完整的 2D RPG 游戏原型，包含村庄、寺庙、战斗三个场景
+        \item 实现玩家角色控制，支持方向键和 WASD 移动
+        \item 实现 NPC 交互系统，包括对话、碰撞检测和交互提示
+        \item 实现战斗系统，支持玩家与怪物的战斗
+        \item 实现场景切换和渐变效果
+        \item 实现音效系统，不同场景播放不同背景音乐
+    \end{itemize}
+    \item \textbf{非功能性目标}
+    \begin{itemize}
+        \item 游戏运行帧率稳定在 40 FPS 以上
+        \item 键盘操作响应延迟小于 50ms
+        \item 代码采用面向对象设计，支持扩展新角色和场景
+        \item 按照 23 步教程顺序实现，每步完成后测试验证
+    \end{itemize}
+\end{enumerate}
+
+% ================================================================
+% 二、主要讨论内容
+% ================================================================
+\section{主要讨论内容}
+
+\subsection{功能需求分析}
+
+根据项目目标和教程要求，将功能需求划分为以下模块：
+
+\subsubsection{场景显示模块}
+
+\begin{table}[H]
+\centering
+\caption{场景显示模块功能需求}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\centering\arraybackslash}m{2cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{5cm}>{\centering\arraybackslash}m{2cm}}
+\toprule
+\textbf{编号} & \textbf{功能名称} & \textbf{功能描述} & \textbf{优先级} \\
+\midrule
+F-001 & 背景图片显示 & 在窗口中显示游戏背景图片 & 高 \\
+F-002 & TMX地图渲染 & 使用pytmx加载并渲染Tiled地图 & 高 \\
+F-003 & 多图层支持 & 支持图块层、图像层、对象层 & 高 \\
+F-004 & 地图封装 & 将TMX地图封装为可复用的TiledScene类 & 中 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{角色系统模块}
+
+\begin{table}[H]
+\centering
+\caption{角色系统模块功能需求}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\centering\arraybackslash}m{2cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{5cm}>{\centering\arraybackslash}m{2cm}}
+\toprule
+\textbf{编号} & \textbf{功能名称} & \textbf{功能描述} & \textbf{优先级} \\
+\midrule
+F-010 & 精灵基类 & 创建ActorBase角色基类，继承pygame.sprite.Sprite & 高 \\
+F-011 & 动画行为类 & Action类管理帧动画，支持路径、前缀、帧数、循环等参数 & 高 \\
+F-012 & 玩家角色 & 孙悟空角色实现，使用swk2素材（128帧） & 高 \\
+F-013 & NPC角色 & 村民(elder)、土地公(god)、唐僧(tang)实现 & 高 \\
+F-014 & 怪物角色 & 怪物基类EnemyBase + 牛怪Cattle实现 & 中 \\
+F-015 & 打斗玩家 & BattlePlayer打斗版孙悟空实现 & 高 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{控制系统模块}
+
+\begin{table}[H]
+\centering
+\caption{控制系统模块功能需求}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\centering\arraybackslash}m{2cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{5cm}>{\centering\arraybackslash}m{2cm}}
+\toprule
+\textbf{编号} & \textbf{功能名称} & \textbf{功能描述} & \textbf{优先级} \\
+\midrule
+F-020 & 键盘控制 & 方向键/WASD控制玩家移动 & 高 \\
+F-021 & 4方向动画 & 根据移动方向播放对应动画（4方向x32帧） & 高 \\
+F-022 & TMX位置加载 & 从TMX对象层读取初始位置 & 高 \\
+F-023 & 交互提示显示 & 靠近NPC/怪物时显示"按空格键发起对话/战斗"提示 & 高 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{碰撞系统模块}
+
+\begin{table}[H]
+\centering
+\caption{碰撞系统模块功能需求}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\centering\arraybackslash}m{2cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{5cm}>{\centering\arraybackslash}m{2cm}}
+\toprule
+\textbf{编号} & \textbf{功能名称} & \textbf{功能描述} & \textbf{优先级} \\
+\midrule
+F-030 & 矩形碰撞 & 使用pygame.Rect进行碰撞检测 & 高 \\
+F-031 & 障碍物碰撞 & 玩家与障碍物碰撞停步 & 高 \\
+F-032 & NPC碰撞 & 玩家与NPC碰撞停步，防止重叠 & 高 \\
+F-033 & NPC交互检测 & 靠近NPC时inflate(20,20)扩大检测范围触发交互提示 & 高 \\
+F-034 & 怪物碰撞 & 玩家与怪物碰撞停步 & 高 \\
+F-035 & 怪物交互检测 & 靠近怪物时inflate(40,40)扩大检测范围触发战斗提示 & 高 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{场景管理模块}
+
+\begin{table}[H]
+\centering
+\caption{场景管理模块功能需求}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\centering\arraybackslash}m{2cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{5cm}>{\centering\arraybackslash}m{2cm}}
+\toprule
+\textbf{编号} & \textbf{功能名称} & \textbf{功能描述} & \textbf{优先级} \\
+\midrule
+F-040 & 相机系统 & 窗口跟随玩家移动，实现滚动效果 & 高 \\
+F-041 & 边界控制 & 避免玩家和窗口越界 & 高 \\
+F-042 & 场景切换 & 村庄→寺庙→战斗→结束场景切换 & 高 \\
+F-043 & 渐变效果 & 场景切换渐入渐出效果（RGBA alpha通道） & 中 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{对话系统模块}
+
+\begin{table}[H]
+\centering
+\caption{对话系统模块功能需求}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\centering\arraybackslash}m{2cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{5cm}>{\centering\arraybackslash}m{2cm}}
+\toprule
+\textbf{编号} & \textbf{功能名称} & \textbf{功能描述} & \textbf{优先级} \\
+\midrule
+F-050 & 对话框显示 & 显示半透明黑色对话框UI (alpha=200) & 高 \\
+F-051 & 文字绘制 & 第一行显示"角色名：对话内容"（24px粗体） & 高 \\
+F-052 & 透明Surface & 对话框半透明效果 & 中 \\
+F-053 & 操作提示 & 第二行显示"按空格键继续 · 按Esc键退出"（14px粗体） & 高 \\
+F-054 & 多行支持 & 对话内容自动换行显示 & 中 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{战斗系统模块}
+
+\begin{table}[H]
+\centering
+\caption{战斗系统模块功能需求}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\centering\arraybackslash}m{2cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{5cm}>{\centering\arraybackslash}m{2cm}}
+\toprule
+\textbf{编号} & \textbf{功能名称} & \textbf{功能描述} & \textbf{优先级} \\
+\midrule
+F-060 & 战斗场景 & 独立的战斗场景 & 高 \\
+F-061 & 怪物出现 & 战斗场景中怪物出现 & 高 \\
+F-062 & 战斗状态 & 战斗状态变化（READY→FIGHTING→WIN/LOSE） & 高 \\
+F-063 & 打斗玩家 & 打斗版孙悟空实现（使用swk素材，16帧） & 高 \\
+F-064 & 怪物动画 & 怪物多种动画状态（station/walk/fight/die等） & 中 \\
+F-065 & 战斗触发 & 按空格键触发战斗（非自动触发） & 高 \\
+F-066 & 战斗提示 & 靠近怪物时显示"按空格键发起战斗" & 高 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{音效系统模块}
+
+\begin{table}[H]
+\centering
+\caption{音效系统模块功能需求}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\centering\arraybackslash}m{2cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{5cm}>{\centering\arraybackslash}m{2cm}}
+\toprule
+\textbf{编号} & \textbf{功能名称} & \textbf{功能描述} & \textbf{优先级} \\
+\midrule
+F-070 & 背景音乐 & 各场景背景音乐循环播放 & 高 \\
+F-071 & 音效播放 & 打斗、交互等音效 & 高 \\
+F-072 & 音乐切换 & 不同场景不同背景音乐 & 中 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{技术方案设计}
+
+\subsubsection{技术选型}
+
+\begin{table}[H]
+\centering
+\caption{技术选型}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\centering\arraybackslash}m{2.5cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{6cm}}
+\toprule
+\textbf{层级} & \textbf{技术选型} & \textbf{说明} \\
+\midrule
+开发语言 & Python 3.10+ & 脚本语言，开发效率高 \\
+游戏框架 & Pygame 2.6 & 成熟的2D游戏开发库 \\
+地图工具 & pytmx & 支持Tiled TMX地图格式 \\
+地图编辑 & Tiled Map Editor & 可视化地图编辑工具 \\
+版本控制 & Git & 代码版本管理 \\
+AI辅助 & Claude Code & 代码生成、调试、文档编写 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{系统架构}
+
+系统采用模块化设计，主要分为以下层次：
+
+\begin{itemize}
+    \item \textbf{核心层}：Game主类、场景管理器、相机系统
+    \item \textbf{角色层}：角色基类ActorBase、玩家Player、NPC基类NPCBase、怪物基类EnemyBase
+    \item \textbf{系统层}：对话系统、战斗系统、碰撞系统
+    \item \textbf{场景层}：场景基类SceneBase、村庄场景、寺庙场景、战斗场景、结束场景
+    \item \textbf{工具层}：TMX渲染器、渐变效果
+\end{itemize}
+
+\subsubsection{核心业务流程}
+
+\begin{algorithm}[H]
+\caption{游戏主循环流程}
+\begin{algorithmic}[1]
+\REQUIRE 初始化Pygame、加载资源
+\ENSURE 游戏主循环
+\STATE 初始化游戏窗口和场景管理器
+\WHILE{游戏运行}
+    \STATE 处理事件输入
+    \STATE 更新当前场景状态
+    \STATE 检测碰撞和交互
+    \STATE 绘制场景和角色
+    \STATE 控制帧率 (FPS=40)
+\ENDWHILE
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{玩家交互流程}
+\begin{algorithmic}[1]
+\REQUIRE 玩家角色、NPC列表、怪物列表
+\ENSURE 交互结果
+\STATE 获取玩家位置和碰撞框
+\FOR{每个NPC}
+    \IF{玩家与NPC碰撞}
+        \STATE 停止玩家移动
+        \IF{检测到inflate(20,20)范围}
+            \STATE 显示"按空格键发起对话"提示
+        \ENDIF
+    \ENDIF
+\ENDFOR
+\FOR{每个怪物}
+    \IF{玩家与怪物碰撞}
+        \STATE 停止玩家移动
+        \IF{检测到inflate(40,40)范围}
+            \STATE 显示"按空格键发起战斗"提示
+        \ENDIF
+    \ENDIF
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{核心业务流程详细说明}
+
+\subsubsection{场景切换流程}
+
+\begin{enumerate}[label=\arabic*.]
+    \item 玩家在村庄场景中移动，靠近土地公
+    \item 按空格键触发对话，显示对话框
+    \item 对话结束后，触发场景切换到寺庙
+    \item 执行渐变效果（FadeScene alpha通道变化）
+    \item 加载寺庙场景，玩家继续探索
+    \item 靠近怪物后按空格键触发战斗
+    \item 进入战斗场景，执行战斗逻辑
+    \item 战斗结束后显示结束场景
+\end{enumerate}
+
+\subsubsection{战斗系统流程}
+
+\begin{enumerate}[label=\arabic*.]
+    \item 战斗状态初始化为READY
+    \item 怪物出现，进入FIGHTING状态
+    \item 玩家攻击，怪物血量减少
+    \item 怪物攻击，玩家血量减少
+    \item 判定胜负：怪物血量≤0为WIN，玩家血量≤0为LOSE
+    \item 战斗结束，显示结果画面
+\end{enumerate}
+
+\subsection{主要难点与解决方案}
+
+\begin{table}[H]
+\centering
+\caption{主要难点与解决方案}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{4cm}>{\centering\arraybackslash}m{5cm}}
+\toprule
+\textbf{难点} & \textbf{说明} & \textbf{初步解决思路} \\
+\midrule
+精灵方向映射 & 128帧精灵表的方向分配 & 确认4个方向各32帧，使用start\_index偏移 \\
+NPC碰撞距离 & 碰撞和交互距离不一致 & 使用inflate扩大交互检测范围 \\
+TMX对象匹配 & 村民对象名前缀不一致 & 实现get\_objects\_by\_name\_prefix方法 \\
+场景切换渐变 & alpha通道变化实现 & 使用FadeScene状态机管理 \\
+战斗触发方式 & 自动触发vs手动触发 & 改为按空格键手动触发 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ================================================================
+% 三、系统设计
+% ================================================================
+\section{系统设计}
+
+\subsection{项目结构}
+
+\begin{lstlisting}[language={},caption={项目目录结构}]
+journey_to_the_west/
+├── main.py              # 游戏入口
+├── config.py            # 全局配置
+├── core/
+│   ├── game.py          # Game主类
+│   ├── camera.py        # 相机系统
+│   └── scene_manager.py # 场景管理器
+├── actors/
+│   ├── action.py        # Action 动画行为类
+│   ├── base_actor.py    # ActorBase 角色基类
+│   ├── player.py        # Player 孙悟空(探索)
+│   ├── battle_player.py # BattlePlayer 孙悟空(战斗)
+│   ├── npc.py           # NPC基类
+│   ├── elder.py         # Elder 村民
+│   ├── god.py           # God 土地公
+│   ├── tang.py          # Tang 唐僧
+│   └── enemy.py         # EnemyBase 怪物基类 + Cattle 牛怪
+├── systems/
+│   ├── dialog.py        # 对话系统
+│   ├── battle.py        # 战斗系统
+│   └── collision.py     # 碰撞系统
+├── scenes/
+│   ├── base_scene.py    # SceneBase 场景基类
+│   ├── village.py       # 村庄场景
+│   ├── temple.py        # 寺庙场景
+│   ├── battle_scene.py  # 战斗场景
+│   └── end_scene.py     # 结束场景
+├── utils/
+│   ├── tiled_render.py  # TMX渲染器
+│   └── fade_scene.py    # 渐变效果
+└── resource/            # 资源文件夹
+\end{lstlisting}
+
+\subsection{类图关系}
+
+类图详见附件 \texttt{class\_diagram.puml}，可使用 PlantUML 工具渲染。
+
+\subsection{角色清单}
+
+\begin{table}[H]
+\centering
+\caption{角色清单}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\centering\arraybackslash}m{2.5cm}>{\centering\arraybackslash}m{2.5cm}>{\centering\arraybackslash}m{4cm}>{\centering\arraybackslash}m{3cm}}
+\toprule
+\textbf{角色} & \textbf{类名} & \textbf{功能} & \textbf{素材} \\
+\midrule
+孙悟空 (探索) & Player & 玩家控制主角 & swk2 (128帧) \\
+孙悟空 (战斗) & BattlePlayer & 战斗模式 & swk (16帧) \\
+唐僧 & Tang & 剧情角色，静止 & 无独立素材 \\
+村民1\~4 & Elder & 背景NPC，可对话 & elder目录 \\
+土地公 & God & 剧情NPC，触发切换 & god目录 \\
+牛怪 & Cattle & 战斗敌人 & cattle目录 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{数据需求}
+
+\subsubsection{资源文件}
+
+\begin{table}[H]
+\centering
+\caption{资源文件清单}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{4cm}>{\centering\arraybackslash}m{5cm}}
+\toprule
+\textbf{类型} & \textbf{路径} & \textbf{说明} \\
+\midrule
+玩家精灵 & resource/img/swk2/ & 孙悟空128帧PNG \\
+NPC精灵 & resource/img/elder/ & 村民TGA格式 \\
+怪物精灵 & resource/img/cattle/ & 牛怪TGA格式 \\
+土地公 & resource/img/god/ & 土地公4方向40帧 \\
+地图文件 & resource/tmx/village1.tmx & 村庄地图 \\
+地图文件 & resource/tmx/temple.tmx & 寺庙地图 \\
+字体文件 & resource/font/newfont.TTF & 中文字体 \\
+音效文件 & resource/sound/ & 背景音乐和音效 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{TMX地图结构}
+
+\begin{table}[H]
+\centering
+\caption{TMX地图图层结构}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{5cm}}
+\toprule
+\textbf{图层名称} & \textbf{类型} & \textbf{说明} \\
+\midrule
+backgroud & imagelayer & 背景图层 \\
+actor & objectgroup & 玩家位置 (sun, tang) \\
+elder & objectgroup & 村民NPC位置 (elder1\~4) \\
+god & objectgroup & 土地公位置 \\
+obstacle & objectgroup & 障碍物碰撞区域 \\
+road & objectgroup & 可行走区域 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{详细设计规格}
+
+\subsubsection{碰撞检测设计}
+
+碰撞检测采用两层设计，直接在各场景中实现：
+
+\begin{enumerate}[label=\arabic*.]
+    \item \textbf{物理碰撞}：将NPC/怪物碰撞框作为障碍物传入玩家更新，玩家与NPC/怪物碰撞时停止移动
+    \item \textbf{交互检测}：使用inflate扩大后的碰撞框，检测玩家是否在交互范围内
+\end{enumerate}
+
+\begin{lstlisting}[language=Python,caption={NPC交互检测代码}]
+def _update_nearby_npc(self):
+    player_rect = self.player.get_rect()
+    self.nearby_npc = None
+    for npc in self.npcs:
+        npc_rect = npc.get_rect().inflate(20, 20)
+        if player_rect.colliderect(npc_rect):
+            self.nearby_npc = npc
+            break
+\end{lstlisting}
+
+\subsubsection{对话系统设计}
+
+对话框采用双行显示格式：
+\begin{itemize}
+    \item 第一行：角色名：对话内容（24px粗体白色文字）
+    \item 第二行：按空格键继续 · 按Esc键退出（14px粗体灰色文字）
+\end{itemize}
+
+对话框背景为半透明黑色（alpha=200），位于屏幕底部。
+
+\subsubsection{战斗触发设计}
+
+战斗触发从自动检测改为手动触发：
+\begin{itemize}
+    \item 靠近怪物时显示"按空格键发起战斗"提示
+    \item 按空格键触发战斗，而非自动触发
+    \item 提供更明确的玩家控制体验
+\end{itemize}
+
+% ================================================================
+% 四、总结
+% ================================================================
+\section{讨论总结与反思}
+
+\subsection{关键收获}
+
+经过系统性的讨论与梳理，对项目需求和设计方案形成了以下认识：
+
+\begin{enumerate}[label=\arabic*.]
+    \item \textbf{模块化设计的重要性}：通过角色基类、场景基类的抽象，使系统具有良好的可扩展性，便于后续添加新角色和场景。
+
+    \item \textbf{交互体验优化}：碰撞检测与交互检测的分离设计，解决了碰撞距离不均衡的问题，提供了更好的玩家体验。
+
+    \item \textbf{手动触发的优势}：将战斗触发从自动改为手动，给予玩家更多控制权，提升了游戏的可玩性。
+
+    \item \textbf{AI辅助开发的价值}：通过与AI工具对话，快速完成了需求分析、代码实现和调试，显著提升了开发效率。
+\end{enumerate}
+
+\subsection{个人感悟}
+
+本次讨论使我对软件需求分析和系统设计有了更深入的理解。在项目开发过程中，需求的明确和设计的合理直接影响了代码的质量和可维护性。通过使用AI辅助工具，不仅加速了开发过程，也学习到了更好的代码组织和设计模式。
+
+\subsection{后续行动计划}
+\begin{enumerate}[label=\arabic*.]
+    \item 完成剩余功能模块的实现和测试
+    \item 优化游戏性能，确保帧率稳定
+    \item 完善文档和代码注释
+    \item 准备项目答辩材料
+\end{enumerate}
+
+\end{document}

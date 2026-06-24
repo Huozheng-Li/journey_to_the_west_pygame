@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.1.5" orientation="orthogonal" renderorder="right-down" width="1" height="1" tilewidth="1999" tileheight="1495" infinite="0" nextobjectid="73">
+<map version="1.8" tiledversion="1.8.6" orientation="orthogonal" renderorder="right-down" width="1" height="1" tilewidth="1999" tileheight="1495" infinite="0" nextlayerid="5" nextobjectid="73">
  <tileset firstgid="1" name="temple" tilewidth="1999" tileheight="1495" tilecount="1" columns="1">
   <image source="../img/temple.jpg" width="1999" height="1495"/>
  </tileset>
- <layer name="块层 1" width="1" height="1">
+ <layer id="1" name="块层 1" width="1" height="1">
   <data encoding="base64" compression="zlib">
    eJxjZGBgAAAACAAC
   </data>
  </layer>
- <objectgroup name="road">
+ <objectgroup id="2" name="road">
   <object id="23" x="399" y="498">
    <polygon points="0,0 -381,-224 -394,-166 -393,10 -333,24 -266,68 -145,108"/>
   </object>
@@ -39,14 +39,14 @@
   <object id="33" x="927" y="1240">
    <polygon points="0,0 250,-131 418,-59 113,83"/>
   </object>
-  <object id="34" x="944" y="910.818">
-   <polygon points="0,0 47.2052,-27.8182 470,236.455 415.611,278.182 256.55,175.469 96.4629,72.7552 44.1266,39.5874"/>
+  <object id="34" x="904" y="864.151">
+   <polygon points="0,0 48.8122,-34.4849 486,293.122 429.759,344.849 265.284,217.52 99.7467,90.1911 45.6288,49.0746"/>
   </object>
-  <object id="35" x="7" y="1487">
-   <polygon points="0,0 38.76,-75 186.66,-253 285.6,-302 380.46,-346 492.66,-391 510,-363 349.86,-248 271.32,-175 161.16,-57 100.98,11"/>
+  <object id="35" x="7" y="1484.92">
+   <polygon points="0,0 53.1493,-89.1791 255.956,-300.831 391.627,-359.095 521.703,-411.413 675.556,-464.92 699.333,-431.627 479.743,-294.886 372.045,-208.085 220.989,-67.7761 138.468,13.0796"/>
   </object>
-  <object id="36" x="574" y="1052">
-   <polygon points="0,0 130,-94 389,-234 520,-317 591,-369 678,-323 530,-226 420,-150 83,43"/>
+  <object id="36" x="574" y="1055.2">
+   <polygon points="0,0 121.052,-87.0032 362.225,-216.583 484.208,-293.405 550.322,-341.534 631.333,-298.958 493.52,-209.178 391.091,-138.835 77.2871,39.7994"/>
   </object>
   <object id="37" x="1024" y="905">
    <polygon points="0,0 229,-98 349,-34 589,82 371,176"/>
@@ -70,18 +70,18 @@
    <polygon points="0,0 -33,42 64,107 101,100 115,61 49,14"/>
   </object>
  </objectgroup>
- <objectgroup name="actor">
-  <object id="45" name="sun" x="605" y="1114">
+ <objectgroup id="3" name="actor">
+  <object id="45" name="sun" x="604.333" y="1098">
    <point/>
   </object>
   <object id="47" name="tang" x="773" y="978">
    <point/>
   </object>
-  <object id="72" x="558" y="778">
-   <polygon points="0,0 238,132 420,36 82,-118"/>
+  <object id="72" x="503.333" y="710.139">
+   <polygon points="0,0 85.3778,66.528 150.667,18.144 29.4159,-59.472"/>
   </object>
  </objectgroup>
- <objectgroup name="monster">
+ <objectgroup id="4" name="monster">
   <object id="66" name="m4" x="549" y="1071">
    <point/>
   </object>

@@ -44,18 +44,22 @@
 #### 2.1.3 控制系统模块
 | 功能编号 | 功能名称 | 功能描述 | 优先级 |
 |----------|----------|----------|--------|
-| F-020 | 键盘控制 | 方向键控制玩家移动 | 高 |
+| F-020 | 键盘控制 | 方向键/WASD控制玩家移动 | 高 |
 | F-021 | 4方向动画 | 根据移动方向播放对应动画 | 高 |
 | F-022 | TMX位置加载 | 从TMX对象层读取初始位置 | 高 |
+| F-023 | 交互提示显示 | 靠近NPC/怪物时显示"按空格键发起对话/战斗"提示 | 高 |
 
 #### 2.1.4 碰撞系统模块
 | 功能编号 | 功能名称 | 功能描述 | 优先级 |
 |----------|----------|----------|--------|
 | F-030 | 矩形碰撞 | pygame.sprite.collide_rect | 高 |
 | F-031 | 障碍物碰撞 | 玩家与障碍物碰撞停步 | 高 |
-| F-032 | NPC碰撞 | 玩家与NPC碰撞触发交互 | 高 |
-| F-033 | 圆碰撞 | pygame.sprite.collide_circle | 低 |
-| F-034 | 遮罩碰撞 | pygame.sprite.collide_mask | 低 |
+| F-032 | NPC碰撞 | 玩家与NPC碰撞停步，防止重叠 | 高 |
+| F-033 | NPC交互检测 | 玩家靠近NPC时触发交互提示，inflate(20,20)扩大检测范围 | 高 |
+| F-034 | 怪物碰撞 | 玩家与怪物碰撞停步 | 高 |
+| F-035 | 怪物交互检测 | 玩家靠近怪物时触发战斗提示，inflate(40,40)扩大检测范围 | 高 |
+| F-036 | 圆碰撞 | pygame.sprite.collide_circle | 低 |
+| F-037 | 遮罩碰撞 | pygame.sprite.collide_mask | 低 |
 
 #### 2.1.5 场景管理模块
 | 功能编号 | 功能名称 | 功能描述 | 优先级 |
@@ -68,9 +72,11 @@
 #### 2.1.6 对话系统模块
 | 功能编号 | 功能名称 | 功能描述 | 优先级 |
 |----------|----------|----------|--------|
-| F-050 | 对话框显示 | 显示对话框UI | 高 |
-| F-051 | 文字绘制 | 在对话框中绘制文字 | 高 |
-| F-052 | 透明Surface | 对话框半透明效果 | 中 |
+| F-050 | 对话框显示 | 显示半透明黑色对话框UI | 高 |
+| F-051 | 文字绘制 | 第一行显示"角色名：对话内容"（24px粗体） | 高 |
+| F-052 | 透明Surface | 对话框半透明效果 (alpha=200) | 中 |
+| F-053 | 操作提示 | 第二行显示"按空格键继续 · 按Esc键退出"（14px粗体） | 高 |
+| F-054 | 多行支持 | 对话内容自动换行显示 | 中 |
 
 #### 2.1.7 战斗系统模块
 | 功能编号 | 功能名称 | 功能描述 | 优先级 |
@@ -80,6 +86,8 @@
 | F-062 | 战斗状态 | 战斗状态变化和结算 | 高 |
 | F-063 | 打斗玩家 | 打斗版孙悟空实现 | 高 |
 | F-064 | 怪物动画 | 怪物多种动画状态 | 中 |
+| F-065 | 战斗触发 | 按空格键触发战斗（非自动触发） | 高 |
+| F-066 | 战斗提示 | 靠近怪物时显示"按空格键发起战斗" | 高 |
 
 #### 2.1.8 音效系统模块
 | 功能编号 | 功能名称 | 功能描述 | 优先级 |
@@ -277,7 +285,6 @@ SceneBase (场景基类)
 | 唐僧 | 村庄 | 剧情角色，TMX中定义 | - |
 | 村民 (elder1~4) | 村庄 | 背景NPC，可扩展对话 | elder目录 (TGA) |
 | 土地公 | 村庄 | 剧情NPC，触发场景切换 | god目录 (40帧TGA) |
-| 儿童 | 村庄 | 背景NPC | - |
 | 怪物 | 战斗场景 | 战斗敌人 | cattle目录 (TGA) |
 | 打斗孙悟空 | 战斗场景 | 战斗版玩家 | swk目录 (16帧TGA) |
 
@@ -360,6 +367,7 @@ class FadeScene:
         self.back_image = back_image
         self.alpha = 0
         self.status = SceneStatus.In
+        self.alpha_step = 20
 
     def set_status(self, status):
         self.status = status
@@ -371,11 +379,17 @@ class FadeScene:
             self.alpha = 255
 
     def get_out(self):
-        return self.status == SceneStatus.Out and self.alpha == 0
+        return self.status == SceneStatus.Over
 
-    def get_back_image(self, x, y):
-        # 裁剪并返回带alpha的surface
-        ...
+    def update(self):
+        if self.status == SceneStatus.In:
+            self.alpha = min(255, self.alpha + self.alpha_step)
+            if self.alpha >= 255:
+                self.status = SceneStatus.Normal
+        elif self.status == SceneStatus.Out:
+            self.alpha = max(0, self.alpha - self.alpha_step)
+            if self.alpha <= 0:
+                self.status = SceneStatus.Over
 ```
 
 ### 8.3 音效系统设计
@@ -437,32 +451,32 @@ class Camera:
 
 ### 8.5 碰撞系统设计
 
-#### 碰撞检测方法
+碰撞检测采用两层设计，直接在各场景中实现：
+
+#### 物理碰撞（停步检测）
 ```python
-class CollisionSystem:
-    def __init__(self, tmx_data):
-        self.obstacles = self.load_obstacles(tmx_data)
+# 在场景的update方法中，将NPC/怪物碰撞框作为障碍物传入玩家更新
+npc_rects = [npc.get_rect() for npc in self.npcs if npc is not self.current_npc]
+self.player.update(keys, self.obstacles + npc_rects)
+```
 
-    def load_obstacles(self, tmx_data):
-        # 从TMX的obstacle层加载障碍物
-        obstacles = []
-        for obj in tmx_data.get_object_by_name('obstacle'):
-            obstacles.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
-        return obstacles
+#### 交互检测（inflate扩大范围）
+```python
+# NPC交互检测 - inflate(20,20)扩大检测范围
+def _update_nearby_npc(self):
+    player_rect = self.player.get_rect()
+    self.nearby_npc = None
+    for npc in self.npcs:
+        npc_rect = npc.get_rect().inflate(20, 20)
+        if player_rect.colliderect(npc_rect):
+            self.nearby_npc = npc
+            break
 
-    def check_obstacle_collision(self, rect):
-        # 检查矩形是否与障碍物碰撞
-        for obstacle in self.obstacles:
-            if rect.colliderect(obstacle):
-                return True
-        return False
-
-    def check_npc_collision(self, player_rect, npcs):
-        # 检查玩家与NPC碰撞
-        for npc in npcs:
-            if player_rect.colliderect(npc.rect):
-                return npc
-        return None
+# 怪物交互检测 - inflate(40,40)扩大检测范围
+def _update_nearby_monster(self):
+    player_rect = self.player.get_rect()
+    monster_rect = self.monster.get_rect().inflate(40, 40)
+    self.nearby_monster = player_rect.colliderect(monster_rect)
 ```
 
 ---
@@ -473,7 +487,7 @@ class CollisionSystem:
 | 测试编号 | 测试内容 | 预期结果 | 优先级 |
 |----------|----------|----------|--------|
 | T-001 | 地图显示 | 村庄地图正确显示 | 高 |
-| T-002 | 玩家移动 | 方向键控制移动正常 | 高 |
+| T-002 | 玩家移动 | 方向键/WASD控制移动正常 | 高 |
 | T-003 | 动画效果 | 移动时播放行走动画 | 高 |
 | T-004 | 障碍物碰撞 | 无法穿越建筑物 | 高 |
 | T-005 | NPC交互 | 与土地公对话触发场景切换 | 高 |
@@ -485,17 +499,24 @@ class CollisionSystem:
 | T-011 | 边界控制 | 玩家和窗口不越界 | 高 |
 | T-012 | 村民对话 | 与村民对话显示文字 | 中 |
 | T-013 | 战斗胜利 | 战斗胜利显示结束画面 | 中 |
+| T-014 | NPC碰撞 | 玩家遇到NPC停步，防止重叠 | 高 |
+| T-015 | 怪物碰撞 | 玩家遇到怪物停步 | 高 |
+| T-016 | NPC交互提示 | 靠近NPC显示"按空格键发起对话" | 高 |
+| T-017 | 怪物战斗提示 | 靠近怪物显示"按空格键发起战斗" | 高 |
+| T-018 | 空格键触发战斗 | 按空格键触发战斗（非自动） | 高 |
+| T-019 | 对话框格式 | 第一行显示"角色：内容"，第二行显示操作提示 | 高 |
+| T-020 | 村民加载 | 4个村民正确加载并显示 | 高 |
 
 ### 9.2 性能测试
 | 测试编号 | 测试内容 | 预期结果 |
 |----------|----------|----------|
-| T-020 | 帧率测试 | 稳定40FPS以上 |
+| T-023 | 帧率测试 | 稳定40FPS以上 |
 | T-021 | 内存测试 | 运行时内存稳定 |
 | T-022 | 响应测试 | 键盘操作响应延迟<50ms |
 
 ---
 
-## 9. 文档清单
+## 10. 文档清单
 
 | 文档名称 | 文档类型 | 说明 |
 |----------|----------|------|

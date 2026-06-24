@@ -1,0 +1,359 @@
+@startuml 西游记观音院-类图
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 14
+skinparam defaultFontSize 12
+skinparam arrowFontSize 12
+skinparam packageFontSize 14
+skinparam classBackgroundColor #FEFECE
+skinparam classBorderColor #A80036
+skinparam arrowColor #555555
+skinparam packageBackgroundColor #E8F5E9
+skinparam packageBorderColor #4CAF50
+
+title 西游记观音院 - 类关系图
+
+' ================================================================
+' 角色模块
+' ================================================================
+package "actors 角色模块" {
+
+    class pygame.sprite.Sprite <<external>> {
+    }
+
+    class Action {
+        - image_index : int
+        - image_count : int
+        - is_loop : bool
+        - action_images : list
+        - frame_delay : int
+        + __init__(path, prefix, image_count, is_loop, start_index, frame_delay)
+        + get_current_image() : Surface
+        + peek_current_image() : Surface
+        + is_end() : bool
+        + reset()
+        + set_image_count(count)
+    }
+
+    class ActorBase {
+        # pos_x : float
+        # pos_y : float
+        # width : int
+        # height : int
+        # speed : int
+        # direction : int
+        # image : Surface
+        # rect : Rect
+        + __init__(x, y, width, height, speed)
+        + update_rect()
+        + draw(surface)
+        + get_position() : tuple
+        + set_position(x, y)
+        + get_rect() : Rect
+    }
+
+    class Player {
+        - map_width : int
+        - map_height : int
+        - animations : dict
+        - is_moving : bool
+        - is_talking : bool
+        - prev_direction : int
+        + __init__(x, y, map_width, map_height)
+        + update(keys, obstacles, walkable_areas)
+        + draw(surface)
+    }
+
+    class BattlePlayer {
+        - hp : int
+        - max_hp : int
+        - attack_power : int
+        - is_alive : bool
+        - animations : dict
+        - current_state : str
+        + __init__(x, y)
+        + take_damage(damage)
+        + attack()
+        + update()
+        + draw(surface)
+    }
+
+    class NPCBase {
+        - dialogs : list
+        - dialog_index : int
+        - is_auto_move : bool
+        - move_timer : int
+        + __init__(x, y, width, height, speed)
+        + get_dialog() : dict
+        + next_dialog() : bool
+        + reset_dialog()
+        + auto_move()
+    }
+
+    class Elder {
+        - elder_type : int
+        - animations : dict
+        + __init__(x, y, elder_type)
+        + update()
+        + draw(surface)
+    }
+
+    class God {
+        - animations : dict
+        + __init__(x, y)
+        + update()
+        + draw(surface)
+    }
+
+    class Tang {
+        + __init__(x, y)
+        + update()
+        + draw(surface)
+    }
+
+    class EnemyBase {
+        - hp : int
+        - max_hp : int
+        - attack_power : int
+        - is_alive : bool
+        - animations : dict
+        - current_state : str
+        + __init__(x, y, width, height, hp, attack_power)
+        + take_damage(damage)
+        + update()
+        + draw(surface)
+    }
+
+    class Cattle {
+        + __init__(x, y)
+        + set_state(state)
+    }
+
+    pygame.sprite.Sprite <|-- ActorBase
+    ActorBase <|-- Player
+    ActorBase <|-- BattlePlayer
+    ActorBase <|-- NPCBase
+    NPCBase <|-- Elder
+    NPCBase <|-- God
+    NPCBase <|-- Tang
+    ActorBase <|-- EnemyBase
+    EnemyBase <|-- Cattle
+
+    ActorBase "1" *-- "1..*" Action : animations >
+    EnemyBase "1" *-- "1..*" Action : animations >
+}
+
+' ================================================================
+' 场景模块
+' ================================================================
+package "scenes 场景模块" {
+
+    class SceneBase {
+        # screen : Surface
+        # is_active : bool
+        # next_scene : str
+        # sound_system : SoundSystem
+        + __init__(screen)
+        + handle_events(events)
+        + update()
+        + draw()
+        + on_enter()
+        + on_exit()
+    }
+
+    class VillageScene {
+        - tiled_scene : TiledScene
+        - scroll_x : int
+        - scroll_y : int
+        - map_width : int
+        - map_height : int
+        - obstacles : list
+        - npcs : list
+        - player : Player
+        - dialog_system : DialogSystem
+        - current_npc : NPCBase
+        - nearby_npc : NPCBase
+        + __init__(screen)
+        + handle_events(events)
+        + update()
+        + draw()
+    }
+
+    class TempleScene {
+        - tiled_scene : TiledScene
+        - scroll_x : int
+        - scroll_y : int
+        - map_width : int
+        - map_height : int
+        - obstacles : list
+        - player : Player
+        - monster : Cattle
+        - nearby_monster : bool
+        + __init__(screen)
+        + handle_events(events)
+        + update()
+        + draw()
+    }
+
+    class BattleScene {
+        - player : BattlePlayer
+        - enemy : Cattle
+        - battle_system : BattleSystem
+        - font : Font
+        + __init__(screen)
+        + handle_events(events)
+        + update()
+        + draw()
+    }
+
+    class EndScene {
+        - is_win : bool
+        - bg_image : Surface
+        - font : Font
+        + __init__(screen, is_win)
+        + handle_events(events)
+        + update()
+        + draw()
+    }
+
+    SceneBase <|-- VillageScene
+    SceneBase <|-- TempleScene
+    SceneBase <|-- BattleScene
+    SceneBase <|-- EndScene
+
+    VillageScene "1" *-- "1" Player
+    VillageScene "1" *-- "1..*" NPCBase : npcs
+    VillageScene "1" *-- "1" DialogSystem
+    VillageScene "1" *-- "1" TiledScene
+
+    TempleScene "1" *-- "1" Player
+    TempleScene "1" *-- "1" Cattle : monster
+    TempleScene "1" *-- "1" TiledScene
+
+    BattleScene "1" *-- "1" BattlePlayer
+    BattleScene "1" *-- "1" Cattle : enemy
+    BattleScene "1" *-- "1" BattleSystem
+}
+
+' ================================================================
+' 系统模块
+' ================================================================
+package "systems 系统模块" {
+
+    class DialogSystem {
+        - is_dialog_active : bool
+        - current_dialog : dict
+        - font : Font
+        - hint_font : Font
+        - dialog_surface : Surface
+        - dialog_rect : Rect
+        + __init__()
+        + start_dialog(dialog)
+        + end_dialog()
+        + draw(screen)
+    }
+
+    class BattleStatus <<enum>> {
+        READY
+        FIGHTING
+        WIN
+        LOSE
+    }
+
+    class BattleSystem {
+        - status : BattleStatus
+        - player : BattlePlayer
+        - enemy : Cattle
+        - battle_log : list
+        - turn_count : int
+        + __init__()
+        + start_battle(player, enemy)
+        + player_attack()
+        + enemy_attack()
+        + get_status() : BattleStatus
+        + is_battle_end() : bool
+    }
+
+    BattleSystem "1" *-- "1" BattleStatus
+    BattleSystem "1" o-- "1" BattlePlayer : player
+    BattleSystem "1" o-- "1" Cattle : enemy
+}
+
+' ================================================================
+' 核心模块
+' ================================================================
+package "core 核心模块" {
+
+    class SceneManager {
+        - screen : Surface
+        - sound_system : SoundSystem
+        - scenes : dict
+        - current_scene : SceneBase
+        - scene_stack : list
+        - fade_scene : FadeScene
+        - is_transitioning : bool
+        - next_scene_name : str
+        + __init__(screen, sound_system)
+        + add_scene(name, scene)
+        + set_current_scene(name, use_fade)
+        + push_scene(name)
+        + pop_scene()
+        + handle_events(events)
+        + update()
+        + draw()
+    }
+
+    SceneManager "1" *-- "1..*" SceneBase : scenes
+    SceneManager "1" o-- "0..1" FadeScene
+    SceneManager "1" o-- "0..1" SceneBase : current_scene
+}
+
+' ================================================================
+' 工具模块
+' ================================================================
+package "utils 工具模块" {
+
+    class SceneStatus <<enum>> {
+        In
+        Normal
+        Out
+        Over
+    }
+
+    class FadeScene {
+        - back_image : Surface
+        - alpha : int
+        - status : SceneStatus
+        - alpha_step : int
+        + __init__(back_image)
+        + set_status(status)
+        + get_out() : bool
+        + update()
+        + get_back_image(x, y) : Surface
+    }
+
+    class TiledScene {
+        - tmx_data : TiledMap
+        - map_width : int
+        - map_height : int
+        + __init__(tmx_path)
+        + render_map(surface, scroll_x, scroll_y)
+        + get_object_by_name(name) : list
+        + get_objects_by_name_prefix(prefix) : list
+        + get_objects_by_layer(layer_name) : list
+        + get_layer_by_name(name) : Layer
+        + get_map_size() : tuple
+    }
+
+    FadeScene "1" *-- "1" SceneStatus
+}
+
+' ================================================================
+' 跨模块关系
+' ================================================================
+VillageScene ..> TiledScene : 加载地图
+TempleScene ..> TiledScene : 加载地图
+SceneManager ..> FadeScene : 场景切换渐变
+BattleScene ..> BattleSystem : 管理战斗逻辑
+
+@enduml

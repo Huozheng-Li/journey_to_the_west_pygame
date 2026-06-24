@@ -62,6 +62,29 @@ class TiledScene:
                 objects.append(obj)
         return objects
 
+    def get_objects_by_name_prefix(self, prefix):
+        """
+        根据名称前缀获取对象层中的对象
+        :param prefix: 名称前缀 (如 'elder' 匹配 'elder1', 'elder2' 等)
+        :return: 对象列表
+        """
+        objects = []
+        for obj in self.tmx_data.objects:
+            if obj.name and obj.name.startswith(prefix):
+                objects.append(obj)
+        return objects
+
+    def get_objects_by_layer(self, layer_name):
+        """
+        根据图层名称获取该图层中所有对象
+        :param layer_name: 图层名称
+        :return: 对象列表
+        """
+        for layer in self.tmx_data.layers:
+            if layer.name == layer_name and isinstance(layer, pytmx.TiledObjectGroup):
+                return list(layer)
+        return []
+
     def get_layer_by_name(self, name):
         """
         根据名称获取图层

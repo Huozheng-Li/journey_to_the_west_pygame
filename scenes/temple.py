@@ -3,10 +3,12 @@
 步骤17-22: 第二个场景 + 战斗触发
 """
 import pygame
+import os
 from .base_scene import SceneBase
 from utils.tiled_render import TiledScene
 from actors.player import Player
-from config import TMX_DIR, SCREEN_WIDTH, SCREEN_HEIGHT
+from actors.enemy import Cattle
+from config import TMX_DIR, SCREEN_WIDTH, SCREEN_HEIGHT, FONT_DIR
 
 
 class TempleScene(SceneBase):
@@ -16,10 +18,6 @@ class TempleScene(SceneBase):
     """
 
     def __init__(self, screen):
-        """
-        初始化寺庙场景
-        :param screen: 主屏幕surface
-        """
         super().__init__(screen)
         try:
             self.tiled_scene = TiledScene(f"{TMX_DIR}/temple.tmx")
@@ -34,26 +32,42 @@ class TempleScene(SceneBase):
 
         self.obstacles = self._load_obstacles()
         self.player = self._load_player()
+        self.walkable_areas = self._load_walkable_areas()
         self.battle_trigger_x = self.map_width // 2
         self.battle_trigger_y = self.map_height // 2
+        self.monster = Cattle(self.battle_trigger_x, self.battle_trigger_y)
+        self.nearby_monster = False
+        self.hint_font = pygame.font.Font(os.path.join(FONT_DIR, 'newfont.TTF'), 16)
 
     def on_enter(self):
-        """进入寺庙场景"""
         super().on_enter()
         if self.sound_system:
             self.sound_system.play_music('nmw', loop=True)
 
     def _load_obstacles(self):
-        """从TMX加载障碍物"""
         obstacles = []
         if self.tiled_scene:
-            for obj in self.tiled_scene.get_object_by_name('obstacle'):
-                rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
-                obstacles.append(rect)
+            for obj in self.tiled_scene.get_objects_by_layer('actor'):
+                if obj.width > 0 and obj.height > 0:
+                    rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
+                    obstacles.append(rect)
         return obstacles
 
+    def _load_walkable_areas(self):
+        areas = []
+        if self.tiled_scene:
+            expand_x = self.player.width // 2
+            expand_y = self.player.height // 2
+            for obj in self.tiled_scene.get_objects_by_layer('road'):
+                if obj.width > 0 and obj.height > 0:
+                    rect = pygame.Rect(
+                        obj.x - expand_x, obj.y - expand_y,
+                        obj.width + expand_x * 2, obj.height + expand_y * 2
+                    )
+                    areas.append(rect)
+        return areas
+
     def _load_player(self):
-        """从TMX加载玩家位置"""
         if self.tiled_scene:
             player_objects = self.tiled_scene.get_object_by_name('sun')
             if player_objects:
@@ -62,29 +76,27 @@ class TempleScene(SceneBase):
         return Player(100, 100, self.map_width, self.map_height)
 
     def handle_events(self, events):
-        """处理事件"""
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.is_active = False
+                elif event.key == pygame.K_SPACE and self.nearby_monster:
+                    self.next_scene = 'battle'
 
     def update(self):
-        """更新场景"""
         keys = pygame.key.get_pressed()
-        self.player.update(keys, self.obstacles)
+        all_obstacles = self.obstacles + [self.monster.get_rect()]
+        self.player.update(keys, all_obstacles, self.walkable_areas)
+        self.monster.update()
         self._update_camera()
-        self._check_battle_trigger()
+        self._update_nearby_monster()
 
-    def _check_battle_trigger(self):
-        """检查战斗触发"""
-        player_x, player_y = self.player.get_position()
-        distance = ((player_x - self.battle_trigger_x) ** 2 +
-                   (player_y - self.battle_trigger_y) ** 2) ** 0.5
-        if distance < 50:
-            self.next_scene = 'battle'
+    def _update_nearby_monster(self):
+        player_rect = self.player.get_rect()
+        monster_rect = self.monster.get_rect().inflate(40, 40)
+        self.nearby_monster = player_rect.colliderect(monster_rect)
 
     def _update_camera(self):
-        """更新相机位置"""
         player_x, player_y = self.player.get_position()
         self.scroll_x = player_x - SCREEN_WIDTH // 2
         self.scroll_y = player_y - SCREEN_HEIGHT // 2
@@ -93,11 +105,28 @@ class TempleScene(SceneBase):
         self.scroll_y = max(0, min(self.scroll_y, self.map_height - SCREEN_HEIGHT))
 
     def draw(self):
-        """绘制寺庙场景"""
         self.screen.fill((0, 0, 0))
         if self.tiled_scene:
             self.tiled_scene.render_map(self.screen, self.scroll_x, self.scroll_y)
 
+        monster_screen_x = self.monster.pos_x - self.scroll_x
+        monster_screen_y = self.monster.pos_y - self.scroll_y
+        self.screen.blit(self.monster.image, (monster_screen_x, monster_screen_y))
+
         screen_x = self.player.pos_x - self.scroll_x
         screen_y = self.player.pos_y - self.scroll_y
         self.screen.blit(self.player.image, (screen_x, screen_y))
+
+        if self.nearby_monster:
+            self._draw_hint("按空格键发起战斗", screen_x, screen_y)
+
+    def _draw_hint(self, text, player_x, player_y):
+        hint_surface = self.hint_font.render(text, True, (255, 255, 200))
+        hint_rect = hint_surface.get_rect()
+        bg_rect = hint_rect.inflate(10, 6)
+        bg_x = player_x + 24 - bg_rect.width // 2
+        bg_y = player_y - 30
+        bg_surface = pygame.Surface(bg_rect.size, pygame.SRCALPHA)
+        bg_surface.fill((0, 0, 0, 160))
+        self.screen.blit(bg_surface, (bg_x, bg_y))
+        self.screen.blit(hint_surface, (bg_x + 5, bg_y + 3))

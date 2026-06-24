@@ -1,6 +1,5 @@
 """
 孙悟空 - 探索版
-步骤9: 玩家主角设计
 """
 import pygame
 from .base_actor import ActorBase
@@ -14,19 +13,13 @@ class Player(ActorBase):
     """
 
     def __init__(self, x, y, map_width=3780, map_height=2395):
-        """
-        初始化孙悟空
-        :param x: 初始x坐标
-        :param y: 初始y坐标
-        :param map_width: 地图宽度
-        :param map_height: 地图高度
-        """
         super().__init__(x, y, 48, 68, speed=4)
         self.map_width = map_width
         self.map_height = map_height
         self.animations = {}
         self.is_moving = False
         self.is_talking = False
+        self.prev_direction = self.DOWN
         self._load_animations()
 
     def _load_animations(self):
@@ -38,36 +31,37 @@ class Player(ActorBase):
             self.RIGHT: Action('swk2', 'China_SunWuKong_', 32, True, start_index=97),
         }
         if self.DOWN in self.animations:
-            self.image = self.animations[self.DOWN].get_current_image()
+            self.image = self.animations[self.DOWN].peek_current_image()
 
-    def update(self, keys, obstacles=None):
-        """
-        更新玩家状态
-        :param keys: 按键状态
-        :param obstacles: 障碍物列表
-        """
+    def update(self, keys, obstacles=None, walkable_areas=None):
+        """更新玩家状态"""
         if self.is_talking:
             return
 
         self.is_moving = False
         dx, dy = 0, 0
+        current_speed = self.speed * 0.5 if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT] else self.speed
 
         if keys[pygame.K_s]:
             self.direction = self.DOWN
-            dy = self.speed
+            dy = current_speed
             self.is_moving = True
-        elif keys[pygame.K_w]:
+        if keys[pygame.K_w]:
             self.direction = self.UP
-            dy = -self.speed
+            dy = -current_speed
             self.is_moving = True
-        elif keys[pygame.K_a]:
+        if keys[pygame.K_a]:
             self.direction = self.LEFT
-            dx = -self.speed
+            dx = -current_speed
             self.is_moving = True
-        elif keys[pygame.K_d]:
+        if keys[pygame.K_d]:
             self.direction = self.RIGHT
-            dx = self.speed
+            dx = current_speed
             self.is_moving = True
+
+        if dx != 0 and dy != 0:
+            dx *= 0.707
+            dy *= 0.707
 
         if self.is_moving:
             new_x = self.pos_x + dx
@@ -76,11 +70,17 @@ class Player(ActorBase):
             new_x = max(0, min(new_x, self.map_width - self.width))
             new_y = max(0, min(new_y, self.map_height - self.height))
 
+            test_rect = pygame.Rect(new_x, new_y, self.width, self.height)
+
             if obstacles:
-                test_rect = pygame.Rect(new_x, new_y, self.width, self.height)
                 for obstacle in obstacles:
                     if test_rect.colliderect(obstacle):
                         return
+
+            if walkable_areas:
+                in_area = any(test_rect.colliderect(area) for area in walkable_areas)
+                if not in_area:
+                    return
 
             self.set_position(new_x, new_y)
 
@@ -89,12 +89,16 @@ class Player(ActorBase):
     def _update_animation(self):
         """更新动画帧"""
         if self.direction in self.animations:
+            if self.direction != self.prev_direction:
+                self.animations[self.direction].reset()
+                self.prev_direction = self.direction
+
             action = self.animations[self.direction]
             if self.is_moving:
                 self.image = action.get_current_image()
             else:
                 action.reset()
-                self.image = action.get_current_image()
+                self.image = action.peek_current_image()
 
     def draw(self, surface):
         """绘制玩家"""

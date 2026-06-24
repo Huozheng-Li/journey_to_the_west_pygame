@@ -24,8 +24,12 @@ class DialogSystem:
         """加载字体"""
         try:
             self.font = pygame.font.Font(f"{FONT_DIR}/newfont.TTF", 24)
+            self.font.set_bold(True)
+            self.hint_font = pygame.font.Font(f"{FONT_DIR}/newfont.TTF", 14)
+            self.hint_font.set_bold(True)
         except (FileNotFoundError, pygame.error):
-            self.font = pygame.font.SysFont('simhei', 24)
+            self.font = pygame.font.SysFont('simhei', 24, bold=True)
+            self.hint_font = pygame.font.SysFont('simhei', 14, bold=True)
 
     def start_dialog(self, dialog):
         """
@@ -67,11 +71,9 @@ class DialogSystem:
             speaker = self.current_dialog.get("speaker", "")
             text = self.current_dialog.get("text", "")
 
-            speaker_surface = self.font.render(speaker, True, (255, 255, 0))
-            screen.blit(speaker_surface, (self.dialog_rect.x + 20, self.dialog_rect.y + 15))
+            content = f"{speaker}：{text}"
+            content_surface = self.font.render(content, True, (255, 255, 255))
+            screen.blit(content_surface, (self.dialog_rect.x + 20, self.dialog_rect.y + 15))
 
-            text_surface = self.font.render(text, True, (255, 255, 255))
-            screen.blit(text_surface, (self.dialog_rect.x + 20, self.dialog_rect.y + 55))
-
-            hint_surface = self.font.render("按空格键继续", True, (150, 150, 150))
-            screen.blit(hint_surface, (self.dialog_rect.x + 20, self.dialog_rect.y + 90))
+            hint_surface = self.hint_font.render("按空格键继续 · 按Esc键退出", True, (150, 150, 150))
+            screen.blit(hint_surface, (self.dialog_rect.x + 20, self.dialog_rect.y + 85))

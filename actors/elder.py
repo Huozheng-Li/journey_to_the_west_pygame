@@ -30,7 +30,7 @@ class Elder(NPCBase):
     def _load_animations(self, frame_count):
         """加载动画"""
         self.animations = {
-            self.DOWN: Action(f'elder', f'elder{self.elder_type}-0000', frame_count, True),
+            self.DOWN: Action(f'elder', f'elder{self.elder_type}-', frame_count, True, start_index=0),
         }
         if self.DOWN in self.animations:
             self.image = self.animations[self.DOWN].get_current_image()
