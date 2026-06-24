@@ -25,7 +25,8 @@ class PlayerStats:
         self.elder_bonus_count = 0
         self.tang_bonus_count = 0
         self.total_enemies_defeated = 0
-        self.last_battle_won = False  # 上次战斗结果
+        self.last_battle_won = True  # 上次战斗结果（默认True，表示还没战斗过）
+        self.has_been_to_battle = False  # 是否曾经进入过战斗
 
     def add_elder_hp(self):
         """

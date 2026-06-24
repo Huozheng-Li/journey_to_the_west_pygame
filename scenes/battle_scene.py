@@ -87,6 +87,7 @@ class BattleScene(SceneBase):
             self.player.hp = self.player_stats.hp
             self.player.max_hp = self.player_stats.hp
             self.player.attack_power = self.player_stats.attack_power
+            self.player_stats.has_been_to_battle = True
 
         # 重置波次状态
         self.current_wave = 0

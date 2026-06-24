@@ -35,12 +35,16 @@ class VillageScene(SceneBase):
         self.current_npc = None
         self.next_scene = None
         self.nearby_npc = None
+        self.is_auto_encourage = False  # 是否为自动鼓励对话
         self.hint_font = pygame.font.Font(os.path.join(FONT_DIR, 'newfont.TTF'), 16)
 
     def on_enter(self):
         super().on_enter()
         if self.sound_system:
             self.sound_system.play_music('aigei', loop=True)
+        # 战斗失败后自动触发土地公对话
+        if self.player_stats and self.player_stats.has_been_to_battle and not self.player_stats.last_battle_won:
+            self._auto_talk_to_god()
 
     def _load_obstacles(self):
         obstacles = []
@@ -85,9 +89,16 @@ class VillageScene(SceneBase):
                 elif event.key == pygame.K_SPACE:
                     if self.dialog_system.is_dialog_active:
                         if self.current_npc:
-                            if not self.current_npc.next_dialog():
+                            # 根据对话类型使用不同的next_dialog方法
+                            if self.is_auto_encourage and isinstance(self.current_npc, God):
+                                has_next = self.current_npc.next_encourage_dialog()
+                            else:
+                                has_next = self.current_npc.next_dialog()
+
+                            if not has_next:
                                 self.dialog_system.end_dialog()
                                 self.player.is_talking = False
+                                self.is_auto_encourage = False
                                 # NPC交互属性加成
                                 if isinstance(self.current_npc, Elder):
                                     if self.player_stats and self.player_stats.add_elder_hp():
@@ -102,7 +113,12 @@ class VillageScene(SceneBase):
                                     self.next_scene = 'temple'
                                 self.current_npc = None
                             else:
-                                self.dialog_system.start_dialog(self.current_npc.get_dialog())
+                                # 获取下一条对话
+                                if self.is_auto_encourage and isinstance(self.current_npc, God):
+                                    dialog = self.current_npc.get_encourage_dialog()
+                                else:
+                                    dialog = self.current_npc.get_dialog()
+                                self.dialog_system.start_dialog(dialog)
                     else:
                         self._check_npc_collision()
 
@@ -117,6 +133,18 @@ class VillageScene(SceneBase):
                     self.player.is_talking = True
                     self.dialog_system.start_dialog(dialog)
                     break
+
+    def _auto_talk_to_god(self):
+        """自动与土地公对话（战斗失败后）"""
+        for npc in self.npcs:
+            if isinstance(npc, God):
+                self.current_npc = npc
+                self.player.is_talking = True
+                self.is_auto_encourage = True  # 标记为自动鼓励对话
+                dialog = npc.get_encourage_dialog()
+                if dialog:
+                    self.dialog_system.start_dialog(dialog)
+                break
 
     def update(self):
         if not self.dialog_system.is_dialog_active:
