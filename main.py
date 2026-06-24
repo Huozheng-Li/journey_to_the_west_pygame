@@ -45,6 +45,7 @@ def main():
         scene_manager.handle_events(events)
         scene_manager.update()
         scene_manager.draw()
+        sound_system.update()
 
         if scene_manager.current_scene:
             if scene_manager.current_scene.next_scene:

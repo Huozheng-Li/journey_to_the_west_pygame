@@ -43,7 +43,7 @@ class TempleScene(SceneBase):
     def on_enter(self):
         super().on_enter()
         if self.sound_system:
-            self.sound_system.play_music('nmw', loop=True)
+            self.sound_system.play_music('bgm', loop=True, force_restart=True)
 
     def _load_obstacles(self):
         obstacles = []

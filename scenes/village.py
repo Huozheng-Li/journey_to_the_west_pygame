@@ -41,7 +41,7 @@ class VillageScene(SceneBase):
     def on_enter(self):
         super().on_enter()
         if self.sound_system:
-            self.sound_system.play_music('aigei', loop=True)
+            self.sound_system.play_music('bgm', loop=True, force_restart=True)
         # 战斗失败后自动触发土地公对话
         if self.player_stats and self.player_stats.has_been_to_battle and not self.player_stats.last_battle_won:
             self._auto_talk_to_god()

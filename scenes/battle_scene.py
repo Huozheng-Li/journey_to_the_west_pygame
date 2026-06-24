@@ -59,6 +59,9 @@ class BattleScene(SceneBase):
     def on_enter(self):
         """进入战斗场景"""
         super().on_enter()
+        # 播放战斗音乐
+        if self.sound_system:
+            self.sound_system.play_music('fight', loop=True, force_restart=True)
         # 加载战斗地图
         try:
             self.tiled_scene = TiledScene(f"{TMX_DIR}/test.tmx")
