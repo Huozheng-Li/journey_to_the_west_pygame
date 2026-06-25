@@ -61,9 +61,10 @@ class EnemyBase(ActorBase):
             self.image = action.get_current_image()
 
     def draw(self, surface):
-        """绘制怪物"""
+        """绘制怪物 - 带受击变色效果"""
         if self.image:
-            surface.blit(self.image, self.rect)
+            draw_image = self._apply_hit_effect()
+            surface.blit(draw_image, self.rect)
 
 
 class Cattle(EnemyBase):

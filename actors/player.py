@@ -43,6 +43,7 @@ class Player(ActorBase):
 
     def update(self, keys, obstacles=None, walkable_areas=None):
         """更新玩家状态"""
+        self.update_hit_effect()
         if self.is_talking:
             return
 

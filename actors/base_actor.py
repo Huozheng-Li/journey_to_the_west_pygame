@@ -74,8 +74,8 @@ class ActorBase(pygame.sprite.Sprite):
                 pixels[:, :, 2] = (pixels[:, :, 2] * 0.5).astype(int)
                 del pixels
             except Exception:
-                # 如果像素操作失败，使用简单的白色闪烁
-                hit_image.fill((255, 100, 100, 128), special_flags=pygame.BLEND_RGBA_MULT)
+                # numpy不可用时的fallback：RGB乘法偏红
+                hit_image.fill((255, 80, 80), special_flags=pygame.BLEND_RGB_MULT)
             return hit_image
         else:
             return self.original_image
