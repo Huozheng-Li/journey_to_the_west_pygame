@@ -11,7 +11,7 @@ from actors.god import God
 from actors.elder import Elder
 from actors.tang import Tang
 from systems.dialog import DialogSystem
-from config import TMX_DIR, SCREEN_WIDTH, SCREEN_HEIGHT, FONT_DIR
+from config import TMX_DIR, SCREEN_WIDTH, SCREEN_HEIGHT, FONT_DIR, DRAW_ROAD_EDGE
 
 
 class VillageScene(SceneBase):
@@ -206,6 +206,15 @@ class VillageScene(SceneBase):
     def draw(self):
         self.screen.fill((0, 0, 0))
         self.tiled_scene.render_map(self.screen, self.scroll_x, self.scroll_y)
+
+        if DRAW_ROAD_EDGE:
+            for obs in self.obstacles:
+                screen_rect = pygame.Rect(obs.x - self.scroll_x, obs.y - self.scroll_y,
+                                          obs.width, obs.height)
+                s = pygame.Surface((screen_rect.width, screen_rect.height), pygame.SRCALPHA)
+                s.fill((255, 0, 0, 60))
+                self.screen.blit(s, screen_rect.topleft)
+                pygame.draw.rect(self.screen, (255, 0, 0), screen_rect, 1)
 
         for npc in self.npcs:
             npc.debug_draw(self.screen, self.scroll_x, self.scroll_y)

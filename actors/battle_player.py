@@ -37,11 +37,6 @@ class BattlePlayer(ActorBase):
         self.animations = {}
         self._load_animations()
         self.sync_rect_to_image()
-        # 碰撞框：50%宽，35%高，底部对齐
-        self.col_w = int(self.width * 0.5)
-        self.col_h = int(self.height * 0.35)
-        self.col_offset_x = (self.width - self.col_w) // 2
-        self.col_offset_y = self.height - self.col_h - 2
 
     def _load_animations(self):
         """加载4方向动画 - swk素材: 下(0-3), 左(1000-1003), 上(2000-2003), 右(3000-3003)"""
@@ -204,15 +199,3 @@ class BattlePlayer(ActorBase):
             img_rect.center = (self.rect.centerx, self.rect.centery)
             surface.blit(self.image, img_rect)
 
-    def debug_draw(self, surface, offset_x=0, offset_y=0):
-        """调试绘制：红框=素材，蓝框=脚部碰撞"""
-        screen_x = self.pos_x - offset_x
-        screen_y = self.pos_y - offset_y
-        surface.blit(self.image, (screen_x, screen_y))
-        # 红色框 - 素材边界
-        img_rect = pygame.Rect(screen_x, screen_y, self.image.get_width(), self.image.get_height())
-        pygame.draw.rect(surface, (255, 0, 0), img_rect, 2)
-        # 蓝色框 - 脚部碰撞区域
-        col_rect = pygame.Rect(screen_x + self.col_offset_x, screen_y + self.col_offset_y,
-                               self.col_w, self.col_h)
-        pygame.draw.rect(surface, (0, 100, 255), col_rect, 2)

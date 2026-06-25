@@ -28,3 +28,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 FALLBACK_BG_COLOR = (100, 149, 237)  # Cornflower blue
+
+# 调试绘制开关
+DRAW_CHARACTER_EDGE = True  # True=绘制素材边框和碰撞边框，False=不绘制
+DRAW_ROAD_EDGE = True  # True=绘制可行走区域和障碍物边框，False=不绘制

@@ -8,7 +8,7 @@ from .base_scene import SceneBase
 from utils.tiled_render import TiledScene
 from actors.player import Player
 from actors.enemy import Cattle
-from config import TMX_DIR, SCREEN_WIDTH, SCREEN_HEIGHT, FONT_DIR
+from config import TMX_DIR, SCREEN_WIDTH, SCREEN_HEIGHT, FONT_DIR, DRAW_ROAD_EDGE
 
 
 class TempleScene(SceneBase):
@@ -109,6 +109,22 @@ class TempleScene(SceneBase):
         self.screen.fill((0, 0, 0))
         if self.tiled_scene:
             self.tiled_scene.render_map(self.screen, self.scroll_x, self.scroll_y)
+
+        if DRAW_ROAD_EDGE:
+            for area in self.walkable_areas:
+                screen_rect = pygame.Rect(area.x - self.scroll_x, area.y - self.scroll_y,
+                                          area.width, area.height)
+                s = pygame.Surface((screen_rect.width, screen_rect.height), pygame.SRCALPHA)
+                s.fill((0, 255, 0, 60))
+                self.screen.blit(s, screen_rect.topleft)
+                pygame.draw.rect(self.screen, (0, 255, 0), screen_rect, 1)
+            for obs in self.obstacles:
+                screen_rect = pygame.Rect(obs.x - self.scroll_x, obs.y - self.scroll_y,
+                                          obs.width, obs.height)
+                s = pygame.Surface((screen_rect.width, screen_rect.height), pygame.SRCALPHA)
+                s.fill((255, 0, 0, 60))
+                self.screen.blit(s, screen_rect.topleft)
+                pygame.draw.rect(self.screen, (255, 0, 0), screen_rect, 1)
 
         self.monster.debug_draw(self.screen, self.scroll_x, self.scroll_y)
 
