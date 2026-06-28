@@ -62,6 +62,12 @@ class EnemyBase(ActorBase):
             if new_image is not self.image:
                 self.image = new_image
                 self.original_image = self.image.copy()
+                # 保持中心点不变，更新rect尺寸（不同动画素材尺寸不同）
+                center = self.rect.center
+                self.width = self.image.get_width()
+                self.height = self.image.get_height()
+                self.rect.size = (self.width, self.height)
+                self.rect.center = center
 
     def draw(self, surface):
         """绘制怪物"""
