@@ -1,9 +1,11 @@
 """
 战斗场景
-支持WSAD移动、鼠标点击攻击、波次系统、HUD显示
+支持WSAD移动、鼠标点击攻击、波次系统、HUD显示、十万八千里闪现
 """
 import pygame
 import os
+import random
+import math
 from .base_scene import SceneBase
 from utils.tiled_render import TiledScene
 from actors.battle_player import BattlePlayer
@@ -72,6 +74,8 @@ class BattleScene(SceneBase):
         map_height = SCREEN_HEIGHT
         if self.tiled_scene:
             map_width, map_height = self.tiled_scene.get_map_size()
+        self.map_width = map_width
+        self.map_height = map_height
 
         # 读取出生点
         player_spawn = (100, 400)
@@ -124,6 +128,8 @@ class BattleScene(SceneBase):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.is_active = False
+                elif event.key == pygame.K_f:
+                    self._try_teleport()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and not self.battle_over:
                     # 鼠标左键攻击
@@ -143,6 +149,31 @@ class BattleScene(SceneBase):
                 self.enemies_defeated += 1
                 self.between_waves = True
                 self.wave_timer = self.WAVE_DELAY
+
+    def _try_teleport(self):
+        """十万八千里 - 尝试传送"""
+        if not self.player or not self.player.is_alive:
+            return
+        if self.player.is_teleporting or self.player.is_attacking:
+            return
+        pos = self._find_teleport_position()
+        if pos:
+            self.player.start_teleport(pos[0], pos[1])
+
+    def _find_teleport_position(self):
+        """计算传送目标位置：地图内、远离敌人"""
+        if not self.enemy:
+            return None
+        margin = 60
+        safe_dist = self.enemy.aggro_range + 50
+        ex, ey = self.enemy.pos_x, self.enemy.pos_y
+        for _ in range(50):
+            x = random.uniform(margin, self.map_width - margin)
+            y = random.uniform(margin, self.map_height - margin)
+            dist = math.hypot(x - ex, y - ey)
+            if dist > safe_dist:
+                return (x, y)
+        return None
 
     def update(self):
         """更新战斗场景"""
@@ -204,6 +235,7 @@ class BattleScene(SceneBase):
         # 绘制玩家
         if self.player:
             self.player.debug_draw(self.screen, 0, 0)
+            self.player.draw_magic(self.screen, 0, 0)
 
         # 绘制HUD
         self._draw_hud()

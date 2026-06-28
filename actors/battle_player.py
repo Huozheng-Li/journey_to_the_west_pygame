@@ -1,8 +1,9 @@
 """
 孙悟空 - 战斗版
-支持WASD移动、鼠标点击攻击、4方向动画
+支持WASD移动、鼠标点击攻击、4方向动画、十万八千里闪现
 """
 import pygame
+import random
 from .base_actor import ActorBase
 from .action import Action
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
@@ -37,6 +38,11 @@ class BattlePlayer(ActorBase):
         self.animations = {}
         self._load_animations()
         self.sync_rect_to_image()
+        # 十万八千里传送技能
+        self.is_teleporting = False
+        self.teleport_timer = 0
+        self.magic_action = Action('magic/appear', '0000-b788e5a-', 18, False, start_index=0, frame_delay=2)
+        self.magic_image = None
 
     def _load_animations(self):
         """加载4方向动画 - swk素材: 下(0-3), 左(1000-1003), 上(2000-2003), 右(3000-3003)"""
@@ -114,6 +120,27 @@ class BattlePlayer(ActorBase):
         # 默认向下
         return pygame.Rect(cx - attack_width // 2, cy, attack_width, attack_range)
 
+    def start_teleport(self, dest_x, dest_y):
+        """
+        十万八千里 - 闪现到目标位置
+        :param dest_x: 目标x坐标
+        :param dest_y: 目标y坐标
+        """
+        self.is_teleporting = True
+        self.teleport_timer = self.magic_action.image_count * self.magic_action.frame_delay
+        self.set_position(dest_x, dest_y)
+        self.magic_action.reset()
+        self.magic_image = self.magic_action.get_current_image()
+
+    def draw_magic(self, surface, offset_x=0, offset_y=0):
+        """在角色中心叠加绘制magic动画"""
+        if self.is_teleporting and self.magic_image:
+            screen_x = self.pos_x - offset_x
+            screen_y = self.pos_y - offset_y
+            magic_rect = self.magic_image.get_rect()
+            magic_rect.center = (screen_x + self.width // 2, screen_y + self.height // 2)
+            surface.blit(self.magic_image, magic_rect)
+
     def update(self, keys=None):
         """
         更新战斗玩家状态
@@ -121,6 +148,16 @@ class BattlePlayer(ActorBase):
         """
         # 更新受击效果
         self.update_hit_effect()
+
+        # 传送中不能移动
+        if self.is_teleporting:
+            self.teleport_timer -= 1
+            self.magic_image = self.magic_action.get_current_image()
+            if self.teleport_timer <= 0:
+                self.is_teleporting = False
+                self.magic_image = None
+            self._update_animation()
+            return
 
         # 攻击中不能移动
         if self.is_attacking:
