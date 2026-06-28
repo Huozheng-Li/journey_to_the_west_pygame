@@ -224,18 +224,8 @@ class VillageScene(SceneBase):
         if not self.dialog_system.is_dialog_active:
             keys = pygame.key.get_pressed()
             npc_rects = [npc.get_rect() for npc in self.npcs if npc is not self.current_npc]
-            # 多边形区域单独检测，矩形区域传给player
-            rect_areas = [a for a in self.walkable_areas if not isinstance(a, PolygonArea)]
-            poly_areas = [a for a in self.walkable_areas if isinstance(a, PolygonArea)]
-            # 保存旧位置，用于多边形碰撞回退
-            old_x, old_y = self.player.pos_x, self.player.pos_y
-            self.player.update(keys, self.obstacles + npc_rects, rect_areas)
-            # 多边形碰撞：玩家脚部必须在任一多边形内
-            if poly_areas and (self.player.pos_x != old_x or self.player.pos_y != old_y):
-                col = self.player.get_col_rect()
-                in_poly = any(pa.colliderect(col) for pa in poly_areas)
-                if not in_poly:
-                    self.player.set_position(old_x, old_y)
+            # 所有可行走区域都传给player（包括多边形）
+            self.player.update(keys, self.obstacles + npc_rects, self.walkable_areas)
             for npc in self.npcs:
                 npc.update()
             self._update_nearby_npc()

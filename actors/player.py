@@ -95,21 +95,73 @@ class Player(ActorBase):
             # 碰撞检测使用脚部区域（50%宽，35%高，底部对齐）
             col_w = int(self.width * 0.5)
             col_h = int(self.height * 0.35)
-            col_x = new_x + (self.width - col_w) // 2
-            col_y = new_y + self.height - col_h - 2
-            test_rect = pygame.Rect(col_x, col_y, col_w, col_h)
 
-            if obstacles:
-                for obstacle in obstacles:
-                    if test_rect.colliderect(obstacle):
-                        return
+            def _blocked(x, y, check_walkable=True):
+                cx = x + (self.width - col_w) // 2
+                cy = y + self.height - col_h - 2
+                r = pygame.Rect(cx, cy, col_w, col_h)
+                if obstacles:
+                    for obs in obstacles:
+                        if r.colliderect(obs):
+                            return True
+                if check_walkable and walkable_areas:
+                    in_area = False
+                    for a in walkable_areas:
+                        if hasattr(a, 'colliderect'):
+                            if a.colliderect(r):
+                                in_area = True
+                                break
+                        elif r.colliderect(a):
+                            in_area = True
+                            break
+                    if not in_area:
+                        return True
+                return False
 
-            if walkable_areas:
-                in_area = any(test_rect.colliderect(area) for area in walkable_areas)
-                if not in_area:
-                    return
+            def _in_walkable(x, y):
+                if not walkable_areas:
+                    return True
+                cx = x + (self.width - col_w) // 2
+                cy = y + self.height - col_h - 2
+                r = pygame.Rect(cx, cy, col_w, col_h)
+                for a in walkable_areas:
+                    if hasattr(a, 'colliderect'):
+                        if a.colliderect(r):
+                            return True
+                    elif r.colliderect(a):
+                        return True
+                return False
 
-            self.set_position(new_x, new_y)
+            def _slide_ok(x, y):
+                """滑动检查：不撞障碍物，且中心附近在多边形内"""
+                cx = x + (self.width - col_w) // 2
+                cy = y + self.height - col_h - 2
+                r = pygame.Rect(cx, cy, col_w, col_h)
+                for obs in obstacles:
+                    if r.colliderect(obs):
+                        return False
+                if walkable_areas:
+                    px = cx + col_w // 2
+                    py = cy + col_h // 2
+                    # 检查中心点周围4个采样点，任一在多边形内即可
+                    for a in walkable_areas:
+                        if hasattr(a, '_point_in_polygon'):
+                            for dx2 in (-4, 0, 4):
+                                for dy2 in (-4, 0, 4):
+                                    if a._point_in_polygon(px + dx2, py + dy2):
+                                        return True
+                        elif r.colliderect(a):
+                            return True
+                    return False
+                return True
+
+            # 蹭墙：先试XY，不行则只试X滑动，再不行只试Y滑动（永不停下）
+            if not _blocked(new_x, new_y):
+                self.set_position(new_x, new_y)
+            elif _slide_ok(new_x, self.pos_y):
+                self.set_position(new_x, self.pos_y)
+            elif _slide_ok(self.pos_x, new_y):
+                self.set_position(self.pos_x, new_y)
 
         self._update_animation()
 

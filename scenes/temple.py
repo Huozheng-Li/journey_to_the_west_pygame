@@ -151,14 +151,8 @@ class TempleScene(SceneBase):
     def update(self):
         keys = pygame.key.get_pressed()
         all_obstacles = self.obstacles + [self.monster.get_rect()]
-        rect_areas = [a for a in self.walkable_areas if not isinstance(a, PolygonArea)]
-        poly_areas = [a for a in self.walkable_areas if isinstance(a, PolygonArea)]
-        old_x, old_y = self.player.pos_x, self.player.pos_y
-        self.player.update(keys, all_obstacles, rect_areas)
-        if poly_areas and (self.player.pos_x != old_x or self.player.pos_y != old_y):
-            col = self.player.get_col_rect()
-            if not any(pa.colliderect(col) for pa in poly_areas):
-                self.player.set_position(old_x, old_y)
+        # 所有可行走区域都传给player
+        self.player.update(keys, all_obstacles, self.walkable_areas)
         self.monster.update()
         self._update_camera()
         self._update_nearby_monster()
