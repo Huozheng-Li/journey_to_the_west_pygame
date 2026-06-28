@@ -42,7 +42,14 @@ class BattlePlayer(ActorBase):
         self.is_teleporting = False
         self.teleport_timer = 0
         self.magic_action = Action('magic/appear', '0000-b788e5a-', 18, False, start_index=0, frame_delay=2)
+        # 缩放magic动画到角色大小的1.5倍
+        scale = 0.8
+        self.magic_action.action_images = [
+            pygame.transform.smoothscale(img, (int(img.get_width() * scale), int(img.get_height() * scale)))
+            for img in self.magic_action.action_images
+        ]
         self.magic_image = None
+        self.magic_offset_y = -20  # magic动画相对角色的Y偏移
 
     def _load_animations(self):
         """加载4方向动画 - swk素材: 下(0-3), 左(1000-1003), 上(2000-2003), 右(3000-3003)"""
@@ -122,24 +129,28 @@ class BattlePlayer(ActorBase):
 
     def start_teleport(self, dest_x, dest_y):
         """
-        十万八千里 - 闪现到目标位置
+        十万八千里 - 闪现到目标位置，立即可移动，magic动画跟随
         :param dest_x: 目标x坐标
         :param dest_y: 目标y坐标
         """
         self.is_teleporting = True
+        self.is_attacking = False
+        self.attack_timer = 0
         self.teleport_timer = self.magic_action.image_count * self.magic_action.frame_delay
         self.set_position(dest_x, dest_y)
         self.magic_action.reset()
         self.magic_image = self.magic_action.get_current_image()
 
     def draw_magic(self, surface, offset_x=0, offset_y=0):
-        """在角色中心叠加绘制magic动画"""
+        """在角色中心叠加绘制magic动画，带闪烁效果"""
         if self.is_teleporting and self.magic_image:
-            screen_x = self.pos_x - offset_x
-            screen_y = self.pos_y - offset_y
-            magic_rect = self.magic_image.get_rect()
-            magic_rect.center = (screen_x + self.width // 2, screen_y + self.height // 2)
-            surface.blit(self.magic_image, magic_rect)
+            # 每2帧闪烁一次（奇数帧跳过绘制）
+            if self.teleport_timer % 4 < 2:
+                screen_x = self.pos_x - offset_x
+                screen_y = self.pos_y - offset_y
+                magic_rect = self.magic_image.get_rect()
+                magic_rect.center = (screen_x + self.width // 2, screen_y + self.height // 2)
+                surface.blit(self.magic_image, magic_rect)
 
     def update(self, keys=None):
         """
@@ -149,15 +160,13 @@ class BattlePlayer(ActorBase):
         # 更新受击效果
         self.update_hit_effect()
 
-        # 传送中不能移动
+        # 传送特效倒计时（不阻止移动）
         if self.is_teleporting:
             self.teleport_timer -= 1
             self.magic_image = self.magic_action.get_current_image()
             if self.teleport_timer <= 0:
                 self.is_teleporting = False
                 self.magic_image = None
-            self._update_animation()
-            return
 
         # 攻击中不能移动
         if self.is_attacking:
