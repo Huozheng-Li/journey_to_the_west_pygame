@@ -26,10 +26,10 @@ class Player(ActorBase):
     def _load_animations(self):
         """加载4方向动画 - swk素材: 下(0-3), 左(1000-1003), 上(2000-2003), 右(3000-3003)"""
         self.animations = {
-            self.DOWN: Action('swk', '', 4, True, start_index=0, frame_delay=2),
-            self.LEFT: Action('swk', '', 4, True, start_index=1000, frame_delay=2),
-            self.UP: Action('swk', '', 4, True, start_index=2000, frame_delay=2),
-            self.RIGHT: Action('swk', '', 4, True, start_index=3000, frame_delay=2),
+            self.DOWN: Action('swk', '', 4, True, start_index=0, frame_delay=2, direction=0),
+            self.LEFT: Action('swk', '', 4, True, start_index=0, frame_delay=2, direction=1000),
+            self.UP: Action('swk', '', 4, True, start_index=0, frame_delay=2, direction=2000),
+            self.RIGHT: Action('swk', '', 4, True, start_index=0, frame_delay=2, direction=3000),
         }
         # 缩放所有帧到目标尺寸
         target_w, target_h = 90, 126
@@ -51,7 +51,7 @@ class Player(ActorBase):
         dx, dy = 0, 0
         current_speed = self.speed * 0.5 if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT] else self.speed
 
-        # 方向设置 (视觉) - elif保证只有一个方向
+        # 方向设置 (视觉) - 等距视角45度映射
         if keys[pygame.K_s]:
             self.direction = self.DOWN
         elif keys[pygame.K_w]:
@@ -61,23 +61,29 @@ class Player(ActorBase):
         elif keys[pygame.K_d]:
             self.direction = self.RIGHT
 
-        # 速度计算 (移动) - if独立累加支持斜向移动
-        if keys[pygame.K_s]:
-            dy += current_speed
-            self.is_moving = True
+        # 速度计算 - 等距视角：W左上 A左下 S右下 D右上
         if keys[pygame.K_w]:
+            dx -= current_speed
             dy -= current_speed
             self.is_moving = True
         if keys[pygame.K_a]:
             dx -= current_speed
+            dy += current_speed
+            self.is_moving = True
+        if keys[pygame.K_s]:
+            dx += current_speed
+            dy += current_speed
             self.is_moving = True
         if keys[pygame.K_d]:
             dx += current_speed
+            dy -= current_speed
             self.is_moving = True
 
-        if dx != 0 and dy != 0:
-            dx *= 0.707
-            dy *= 0.707
+        # 向量归一化：保证任意组合速度一致
+        length = (dx * dx + dy * dy) ** 0.5
+        if length > 0:
+            dx = dx / length * current_speed
+            dy = dy / length * current_speed
 
         if self.is_moving:
             new_x = self.pos_x + dx

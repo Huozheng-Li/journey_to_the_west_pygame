@@ -13,7 +13,7 @@ class Action:
     管理帧动画的加载、播放、切换
     """
 
-    def __init__(self, path, prefix, image_count, is_loop=True, start_index=1, frame_delay=2):
+    def __init__(self, path, prefix, image_count, is_loop=True, start_index=1, frame_delay=2, direction=0):
         """
         初始化动画行为
         :param path: 图片目录路径 (如 'elder', 'cattle/fight')
@@ -22,6 +22,7 @@ class Action:
         :param is_loop: 是否循环播放
         :param start_index: 起始帧索引 (默认为1)
         :param frame_delay: 帧延迟 (默认为2，即每2次调用前进1帧)
+        :param direction: 方向偏移 (0=下, 10=左, 20=上, 30=右)
         """
         self.image_index = 0
         self.image_count = image_count
@@ -30,10 +31,11 @@ class Action:
         self.frame_delay = frame_delay
         self._frame_delay = frame_delay
 
+        actual_start = start_index + direction
         full_path = os.path.join(IMG_DIR, path)
         raw_images = []
         for i in range(image_count):
-            frame_num = start_index + i
+            frame_num = actual_start + i
             img_path = os.path.join(full_path, f"{prefix}{frame_num:05d}.png")
             try:
                 image = pygame.image.load(img_path).convert_alpha()

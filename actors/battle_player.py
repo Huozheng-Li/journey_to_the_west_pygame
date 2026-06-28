@@ -135,7 +135,7 @@ class BattlePlayer(ActorBase):
         current_speed = self.speed
 
         if keys:
-            # 方向设置 (视觉) - elif保证只有一个方向
+            # 方向设置 (视觉)
             if keys[pygame.K_s]:
                 self.direction = self.DOWN
             elif keys[pygame.K_w]:
@@ -145,7 +145,7 @@ class BattlePlayer(ActorBase):
             elif keys[pygame.K_d]:
                 self.direction = self.RIGHT
 
-            # 速度计算 (移动) - if独立累加支持斜向移动
+            # 速度计算 (移动)
             if keys[pygame.K_s]:
                 dy += current_speed
                 self.is_moving = True

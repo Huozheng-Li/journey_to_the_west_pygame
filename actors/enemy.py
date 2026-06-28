@@ -29,7 +29,7 @@ class EnemyBase(ActorBase):
         self.attack_power = attack_power
         self.is_alive = True
         self.animations = {}
-        self.current_state = 'station'
+        self.current_state = 'look'
         # 追击AI属性
         self.chase_speed = 1.5
         self.aggro_range = 300
@@ -57,14 +57,16 @@ class EnemyBase(ActorBase):
     def _update_animation(self):
         """更新动画帧"""
         if self.current_state in self.animations:
-            action = self.animations[self.current_state]
-            self.image = action.get_current_image()
+            action = self.animations[self.current_state][self.direction]
+            new_image = action.get_current_image()
+            if new_image is not self.image:
+                self.image = new_image
+                self.original_image = self.image.copy()
 
     def draw(self, surface):
-        """绘制怪物 - 带受击变色效果"""
+        """绘制怪物"""
         if self.image:
-            draw_image = self._apply_hit_effect()
-            surface.blit(draw_image, self.rect)
+            surface.blit(self.image, self.rect)
 
 
 class Cattle(EnemyBase):
@@ -83,28 +85,36 @@ class Cattle(EnemyBase):
         self.sync_rect_to_image()
 
     def _load_animations(self):
-        """加载牛怪动画"""
-        self.animations = {
-            'station': Action('cattle/station', '1644-a85e8726-', 2, True, start_index=0),
-            'walk1': Action('cattle/walk1', '1252-7f2abf21-', 5, True, start_index=0),
-            'walk2': Action('cattle/walk2', '1962-cb5fe03a-', 5, True, start_index=0),
-            'fight': Action('cattle/fight', '0618-3c4fe166-', 13, False, start_index=0),
-            'die': Action('cattle/die', '0762-4cbbea5a-', 11, False, start_index=0),
-            'back': Action('cattle/back', '1172-75d7e3ed-', 12, True, start_index=0),
-            'look': Action('cattle/look', '2193-e6e7de44-', 9, True, start_index=0),
-            'run': Action('cattle/run', '0045-4fe166f-', 6, True, start_index=0),
-        }
-        if 'station' in self.animations:
-            self.image = self.animations['station'].get_current_image()
+        """加载牛怪4方向动画"""
+        dirs = {self.DOWN: 0, self.LEFT: 1000, self.UP: 2000, self.RIGHT: 3000}
+        self.animations = {}
+        for state, path, prefix, count, loop, fd in [
+            ('station', 'cattle/station', '1644-a85e8726-', 2, True, 6),
+            ('walk1',   'cattle/walk1',   '1252-7f2abf21-', 8, True, 2),
+            ('walk2',   'cattle/walk2',   '1962-cb5fe03a-', 5, True, 2),
+            ('fight',   'cattle/fight',   '0618-3c4fe166-', 13, False, 2),
+            ('die',     'cattle/die',     '0762-4cbbea5a-', 11, False, 2),
+            ('back',    'cattle/back',    '1172-75d7e3ed-', 12, True, 2),
+            ('look',    'cattle/look',    '2193-e6e7de44-', 9, True, 2),
+            ('run',     'cattle/run',     '0045-4fe166f-', 6, True, 2),
+        ]:
+            self.animations[state] = {
+                d: Action(path, prefix, count, loop, start_index=0, direction=offset, frame_delay=fd)
+                for d, offset in dirs.items()
+            }
+        self.image = self.animations['look'][self.DOWN].peek_current_image()
 
-    def set_state(self, state):
+    def set_state(self, state, direction=None):
         """
         设置动画状态
         :param state: 状态名称
+        :param direction: 方向 (可选，不传则保持当前方向)
         """
-        if state in self.animations:
+        if direction is not None:
+            self.direction = direction
+        if state in self.animations and state != self.current_state:
             self.current_state = state
-            self.animations[state].reset()
+            self.animations[state][self.direction].reset()
 
     def chase_and_attack(self, player_x, player_y):
         """
@@ -136,7 +146,12 @@ class Cattle(EnemyBase):
 
         # 仇恨范围内追击
         if distance < self.aggro_range and distance > 0:
-            self.set_state('run')
+            # 根据玩家相对位置计算朝向
+            if abs(dx) > abs(dy):
+                face = self.RIGHT if dx > 0 else self.LEFT
+            else:
+                face = self.DOWN if dy > 0 else self.UP
+            self.set_state('walk1', direction=face)
             # 归一化并移动
             nx = dx / distance
             ny = dy / distance
@@ -144,7 +159,8 @@ class Cattle(EnemyBase):
             self.pos_y += ny * self.chase_speed
             self.update_rect()
         else:
-            self.set_state('station')
+            if self.current_state != 'look':
+                self.set_state('look')
 
     def try_deal_damage(self):
         """
@@ -152,8 +168,8 @@ class Cattle(EnemyBase):
         :return: 伤害值，否则返回0
         """
         if self.is_attacking and self.current_state == 'fight':
-            if self.animations['fight'].is_end():
+            if self.animations['fight'][self.direction].is_end():
                 self.is_attacking = False
-                self.set_state('station')
+                self.set_state('look')
                 return self.attack_power
         return 0
