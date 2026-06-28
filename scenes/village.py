@@ -14,6 +14,42 @@ from systems.dialog import DialogSystem
 from config import TMX_DIR, SCREEN_WIDTH, SCREEN_HEIGHT, FONT_DIR, DRAW_ROAD_EDGE
 
 
+class PolygonArea:
+    """多边形可行走区域，支持 colliderect 检测（点-in-多边形）"""
+    def __init__(self, points):
+        self.points = points  # [(x,y), ...]
+
+    def colliderect(self, rect):
+        """检查矩形中心点是否在多边形内"""
+        cx, cy = rect.centerx, rect.centery
+        return self._point_in_polygon(cx, cy)
+
+    def __getattr__(self, name):
+        """提供 x, y, width, height 属性以兼容 pygame.Rect 接口"""
+        if name == 'x':
+            return min(p[0] for p in self.points)
+        elif name == 'y':
+            return min(p[1] for p in self.points)
+        elif name == 'width':
+            return max(p[0] for p in self.points) - min(p[0] for p in self.points)
+        elif name == 'height':
+            return max(p[1] for p in self.points) - min(p[1] for p in self.points)
+        raise AttributeError(name)
+
+    def _point_in_polygon(self, x, y):
+        """射线法判断点是否在多边形内"""
+        n = len(self.points)
+        inside = False
+        j = n - 1
+        for i in range(n):
+            xi, yi = self.points[i]
+            xj, yj = self.points[j]
+            if ((yi > y) != (yj > y)) and (x < (xj - xi) * (y - yi) / (yj - yi) + xi):
+                inside = not inside
+            j = i
+        return inside
+
+
 class VillageScene(SceneBase):
     """
     村庄场景
@@ -23,7 +59,7 @@ class VillageScene(SceneBase):
     def __init__(self, screen, player_stats=None):
         super().__init__(screen)
         self.player_stats = player_stats
-        self.tiled_scene = TiledScene(f"{TMX_DIR}/village1.tmx")
+        self.tiled_scene = TiledScene(f"{TMX_DIR}/village.tmx")
         self.scroll_x = 0
         self.scroll_y = 0
         self.map_width, self.map_height = self.tiled_scene.get_map_size()
@@ -31,6 +67,8 @@ class VillageScene(SceneBase):
         self.obstacles = self._load_obstacles()
         self.npcs = self._load_npcs()
         self.player = self._load_player()
+        self.walkable_areas = self._load_walkable_areas()
+        self._snap_player_to_road()
         self.dialog_system = DialogSystem()
         self.current_npc = None
         self.next_scene = None
@@ -53,6 +91,42 @@ class VillageScene(SceneBase):
                 rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
                 obstacles.append(rect)
         return obstacles
+
+    def _load_walkable_areas(self):
+        areas = []
+        for obj in self.tiled_scene.get_objects_by_layer('road'):
+            if hasattr(obj, 'points') and obj.points:
+                # 多边形区域：保存顶点用于点-in-多边形检测，闭合多边形
+                pts = [(p.x, p.y) for p in obj.points]
+                if pts[0] != pts[-1]:
+                    pts.append(pts[0])
+                areas.append(PolygonArea(pts))
+            elif obj.width > 0 and obj.height > 0:
+                # 矩形区域：兜底
+                areas.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
+        return areas
+
+    def _snap_player_to_road(self):
+        """确保玩家起始位置在某个可行走多边形内"""
+        col = self.player.get_col_rect()
+        for area in self.walkable_areas:
+            if isinstance(area, PolygonArea) and area.colliderect(col):
+                return
+        poly_areas = [a for a in self.walkable_areas if isinstance(a, PolygonArea)]
+        if not poly_areas:
+            return
+        best_dist = float('inf')
+        best_center = None
+        for area in poly_areas:
+            cx = sum(p[0] for p in area.points) / len(area.points)
+            cy = sum(p[1] for p in area.points) / len(area.points)
+            dist = ((col.centerx - cx)**2 + (col.centery - cy)**2)**0.5
+            if dist < best_dist:
+                best_dist = dist
+                best_center = (cx, cy)
+        if best_center:
+            self.player.set_position(best_center[0] - self.player.width // 2,
+                                     best_center[1] - self.player.height // 2)
 
     def _load_npcs(self):
         npcs = []
@@ -150,7 +224,18 @@ class VillageScene(SceneBase):
         if not self.dialog_system.is_dialog_active:
             keys = pygame.key.get_pressed()
             npc_rects = [npc.get_rect() for npc in self.npcs if npc is not self.current_npc]
-            self.player.update(keys, self.obstacles + npc_rects)
+            # 多边形区域单独检测，矩形区域传给player
+            rect_areas = [a for a in self.walkable_areas if not isinstance(a, PolygonArea)]
+            poly_areas = [a for a in self.walkable_areas if isinstance(a, PolygonArea)]
+            # 保存旧位置，用于多边形碰撞回退
+            old_x, old_y = self.player.pos_x, self.player.pos_y
+            self.player.update(keys, self.obstacles + npc_rects, rect_areas)
+            # 多边形碰撞：玩家脚部必须在任一多边形内
+            if poly_areas and (self.player.pos_x != old_x or self.player.pos_y != old_y):
+                col = self.player.get_col_rect()
+                in_poly = any(pa.colliderect(col) for pa in poly_areas)
+                if not in_poly:
+                    self.player.set_position(old_x, old_y)
             for npc in self.npcs:
                 npc.update()
             self._update_nearby_npc()
@@ -208,6 +293,22 @@ class VillageScene(SceneBase):
         self.tiled_scene.render_map(self.screen, self.scroll_x, self.scroll_y)
 
         if DRAW_ROAD_EDGE:
+            for area in self.walkable_areas:
+                if isinstance(area, PolygonArea):
+                    # 多边形绘制
+                    screen_pts = [(p[0] - self.scroll_x, p[1] - self.scroll_y) for p in area.points]
+                    s = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+                    pygame.draw.polygon(s, (0, 255, 0, 60), screen_pts)
+                    self.screen.blit(s, (0, 0))
+                    pygame.draw.polygon(self.screen, (0, 255, 0), screen_pts, 1)
+                else:
+                    # 矩形绘制
+                    screen_rect = pygame.Rect(area.x - self.scroll_x, area.y - self.scroll_y,
+                                              area.width, area.height)
+                    s = pygame.Surface((screen_rect.width, screen_rect.height), pygame.SRCALPHA)
+                    s.fill((0, 255, 0, 60))
+                    self.screen.blit(s, screen_rect.topleft)
+                    pygame.draw.rect(self.screen, (0, 255, 0), screen_rect, 1)
             for obs in self.obstacles:
                 screen_rect = pygame.Rect(obs.x - self.scroll_x, obs.y - self.scroll_y,
                                           obs.width, obs.height)

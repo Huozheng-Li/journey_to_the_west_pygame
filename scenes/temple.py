@@ -11,6 +11,41 @@ from actors.enemy import Cattle
 from config import TMX_DIR, SCREEN_WIDTH, SCREEN_HEIGHT, FONT_DIR, DRAW_ROAD_EDGE
 
 
+class PolygonArea:
+    """多边形可行走区域，支持 colliderect 检测（点-in-多边形）"""
+    def __init__(self, points):
+        self.points = points  # [(x,y), ...]
+
+    def colliderect(self, rect):
+        """检查矩形中心点是否在多边形内"""
+        cx, cy = rect.centerx, rect.centery
+        return self._point_in_polygon(cx, cy)
+
+    def _point_in_polygon(self, x, y):
+        """射线法判断点是否在多边形内"""
+        n = len(self.points)
+        inside = False
+        j = n - 1
+        for i in range(n):
+            xi, yi = self.points[i]
+            xj, yj = self.points[j]
+            if ((yi > y) != (yj > y)) and (x < (xj - xi) * (y - yi) / (yj - yi) + xi):
+                inside = not inside
+            j = i
+        return inside
+
+    def __getattr__(self, name):
+        if name == 'x':
+            return min(p[0] for p in self.points)
+        elif name == 'y':
+            return min(p[1] for p in self.points)
+        elif name == 'width':
+            return max(p[0] for p in self.points) - min(p[0] for p in self.points)
+        elif name == 'height':
+            return max(p[1] for p in self.points) - min(p[1] for p in self.points)
+        raise AttributeError(name)
+
+
 class TempleScene(SceneBase):
     """
     寺庙场景
@@ -34,6 +69,7 @@ class TempleScene(SceneBase):
         self.obstacles = self._load_obstacles()
         self.player = self._load_player()
         self.walkable_areas = self._load_walkable_areas()
+        self._snap_player_to_road()
         self.battle_trigger_x = self.map_width // 2
         self.battle_trigger_y = self.map_height // 2
         self.monster = Cattle(self.battle_trigger_x, self.battle_trigger_y)
@@ -57,16 +93,44 @@ class TempleScene(SceneBase):
     def _load_walkable_areas(self):
         areas = []
         if self.tiled_scene:
-            expand_x = self.player.width // 2
-            expand_y = self.player.height // 2
             for obj in self.tiled_scene.get_objects_by_layer('road'):
-                if obj.width > 0 and obj.height > 0:
+                if hasattr(obj, 'points') and obj.points:
+                    pts = [(p.x, p.y) for p in obj.points]
+                    if pts[0] != pts[-1]:
+                        pts.append(pts[0])
+                    areas.append(PolygonArea(pts))
+                elif obj.width > 0 and obj.height > 0:
+                    expand_x = self.player.width // 2
+                    expand_y = self.player.height // 2
                     rect = pygame.Rect(
                         obj.x - expand_x, obj.y - expand_y,
                         obj.width + expand_x * 2, obj.height + expand_y * 2
                     )
                     areas.append(rect)
         return areas
+
+    def _snap_player_to_road(self):
+        """确保玩家起始位置在某个可行走多边形内，否则定位到最近多边形中心"""
+        col = self.player.get_col_rect()
+        for area in self.walkable_areas:
+            if isinstance(area, PolygonArea) and area.colliderect(col):
+                return  # 已在多边形内
+        # 不在任何多边形内，找最近的并移到其中心
+        poly_areas = [a for a in self.walkable_areas if isinstance(a, PolygonArea)]
+        if not poly_areas:
+            return
+        best_dist = float('inf')
+        best_center = None
+        for area in poly_areas:
+            cx = sum(p[0] for p in area.points) / len(area.points)
+            cy = sum(p[1] for p in area.points) / len(area.points)
+            dist = ((col.centerx - cx)**2 + (col.centery - cy)**2)**0.5
+            if dist < best_dist:
+                best_dist = dist
+                best_center = (cx, cy)
+        if best_center:
+            self.player.set_position(best_center[0] - self.player.width // 2,
+                                     best_center[1] - self.player.height // 2)
 
     def _load_player(self):
         if self.tiled_scene:
@@ -87,7 +151,14 @@ class TempleScene(SceneBase):
     def update(self):
         keys = pygame.key.get_pressed()
         all_obstacles = self.obstacles + [self.monster.get_rect()]
-        self.player.update(keys, all_obstacles, self.walkable_areas)
+        rect_areas = [a for a in self.walkable_areas if not isinstance(a, PolygonArea)]
+        poly_areas = [a for a in self.walkable_areas if isinstance(a, PolygonArea)]
+        old_x, old_y = self.player.pos_x, self.player.pos_y
+        self.player.update(keys, all_obstacles, rect_areas)
+        if poly_areas and (self.player.pos_x != old_x or self.player.pos_y != old_y):
+            col = self.player.get_col_rect()
+            if not any(pa.colliderect(col) for pa in poly_areas):
+                self.player.set_position(old_x, old_y)
         self.monster.update()
         self._update_camera()
         self._update_nearby_monster()
@@ -112,12 +183,19 @@ class TempleScene(SceneBase):
 
         if DRAW_ROAD_EDGE:
             for area in self.walkable_areas:
-                screen_rect = pygame.Rect(area.x - self.scroll_x, area.y - self.scroll_y,
-                                          area.width, area.height)
-                s = pygame.Surface((screen_rect.width, screen_rect.height), pygame.SRCALPHA)
-                s.fill((0, 255, 0, 60))
-                self.screen.blit(s, screen_rect.topleft)
-                pygame.draw.rect(self.screen, (0, 255, 0), screen_rect, 1)
+                if isinstance(area, PolygonArea):
+                    screen_pts = [(p[0] - self.scroll_x, p[1] - self.scroll_y) for p in area.points]
+                    s = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+                    pygame.draw.polygon(s, (0, 255, 0, 60), screen_pts)
+                    self.screen.blit(s, (0, 0))
+                    pygame.draw.polygon(self.screen, (0, 255, 0), screen_pts, 1)
+                else:
+                    screen_rect = pygame.Rect(area.x - self.scroll_x, area.y - self.scroll_y,
+                                              area.width, area.height)
+                    s = pygame.Surface((screen_rect.width, screen_rect.height), pygame.SRCALPHA)
+                    s.fill((0, 255, 0, 60))
+                    self.screen.blit(s, screen_rect.topleft)
+                    pygame.draw.rect(self.screen, (0, 255, 0), screen_rect, 1)
             for obs in self.obstacles:
                 screen_rect = pygame.Rect(obs.x - self.scroll_x, obs.y - self.scroll_y,
                                           obs.width, obs.height)
